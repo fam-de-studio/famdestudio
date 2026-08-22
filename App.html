@@ -474,7 +474,8 @@ function blankJob(){
     pack_pct:0.08, cbm:1.8, mode:'Air Freight',
     qty2:10000, unit2:0, unit2_auto:'Yes',
     validity:'15 days', lead_time:'12–15', transit:'6–9',
-    hs_code:'4819.2000', cartons:6, notes:''
+    hs_code:'4819.2000', cartons:6, notes:'',
+    overrides:{}, vendors:{}
   };
 }
 var job = blankJob();
@@ -555,9 +556,16 @@ function costForQty(job, ctx, qty){
     other: n_(job.other_pkr),
     tr:    n_(job.local_tr)
   };
+  /* Per-job overrides: a typed PKR amount replaces the auto-computed line.
+     Zero is a legitimate override (e.g. client supplies the board). */
+  var ov = job.overrides || {};
+  for(var ok_ in c){
+    if(ov[ok_] !== undefined && ov[ok_] !== null && ov[ok_] !== '') c[ok_] = n_(ov[ok_]);
+  }
   var direct = 0;
   for(var k in c) direct += c[k];
-  var total = direct * 1.08; /* removed in Task 2 */
+  /* No factory overhead — the broker's compensation is the margin, nothing hidden. */
+  var total = direct;
 
   var margin = rateOf(ctx,'margin',0.4), fx = rateOf(ctx,'fx',285);
   var exw = (margin >= 1 || fx <= 0) ? 0 : total / (1 - margin) / fx;

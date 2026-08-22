@@ -39,9 +39,23 @@ const m1 = computeCost(JOB, CTX)
 eq('ups', m1.ups, 12, 0)
 eq('gross sheets', m1.gross, 647, 0)
 eq('direct PKR', m1.direct, 152538.33, 0.5)
-eq('total PKR (with 8% overhead, Task 1 only)', m1.total, 164741.39, 0.5)
-eq('exw USD', m1.exw, 963.40, 0.05)
+eq('total PKR (no overhead)', m1.total, 152538.33, 0.5)
+eq('exw USD', m1.exw, 892.04, 0.05)
 ok('costForQty(10000) cheaper per pc', costForQty(JOB, CTX, 10000).perPc < m1.perPc)
+
+// ── Task 2: overrides, vendors, no overhead ──
+const m2 = computeCost(JOB, CTX)
+eq('no overhead: total equals direct', m2.total, m2.direct, 0.001)
+
+const jOv = { ...JOB, overrides: { board: 60000, paste: 10000 } }
+const mOv = computeCost(jOv, CTX)
+eq('board override wins', mOv.parts.board, 60000, 0.001)
+eq('paste override wins', mOv.parts.paste, 10000, 0.001)
+eq('override total consistent', mOv.direct,
+   m2.direct - m2.parts.board - m2.parts.paste + 70000, 0.01)
+
+const jOv0 = { ...JOB, overrides: { proof: 0 } }
+eq('zero is a valid override', computeCost(jOv0, CTX).parts.proof, 0, 0.001)
 
 if (failures) { console.error(`\n${failures} failure(s)`); process.exit(1) }
 console.log('engine tests: all passed')
