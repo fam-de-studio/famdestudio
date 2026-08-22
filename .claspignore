@@ -1,0 +1,8 @@
+# Ignore everything, then allow only the Apps Script project files.
+# Without this, clasp walks subdirectories (skipSubdirectories: false)
+# and tries to push studio/ including node_modules.
+**/**
+
+!appsscript.json
+!Code.js
+!App.html

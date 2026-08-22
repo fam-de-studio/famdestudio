@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Press Docket</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500;6..96,600&family=Archivo:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  /* app chrome — a dark studio around a white sheet */
+  --app-bg:#141714;
+  --app-panel:#1B1F1B;
+  --app-line:#2C312C;
+  --app-ink:#E8E7E0;
+  --app-dim:#8E938A;
+  --brass:#C09A46;
+  --brass-deep:#8A6820;
+
+}
+
+/* ---------- the document : dark by default, black & white for paper ---------- */
+.sheet{
+  --paper:#1A1E1B;
+  --ink:#EDECE4;
+  --ink-2:#B6BAB1;
+  --ink-3:#8A8E85;
+  --rule:#353A34;
+  --rule-soft:#282D27;
+  --docbrass:#D2AC60;
+  --wash:rgba(210,172,96,.11);
+}
+html.doc-bw .sheet{
+  --paper:#FFFFFF;
+  --ink:#000000;
+  --ink-2:#242424;
+  --ink-3:#4C4C4C;
+  --rule:#8A8A8A;
+  --rule-soft:#C6C6C6;
+  --docbrass:#000000;
+  --wash:transparent;
+}
+*{box-sizing:border-box;}
+html{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+body{
+  margin:0;background:var(--app-bg);color:var(--app-ink);
+  font-family:"Archivo","Helvetica Neue",Arial,sans-serif;font-size:13px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;}
+:focus-visible{outline:2px solid var(--brass);outline-offset:2px;}
+
+/* ============================ APP SHELL ============================ */
+.app{display:flex;flex-direction:column;height:100vh;}
+.topbar{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:0 16px;height:56px;flex:0 0 56px;
+  background:var(--app-panel);border-bottom:1px solid var(--app-line);
+}
+.brand{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:10px;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--app-dim);margin-right:8px;
+}
+.brand b{color:var(--brass);font-weight:600;}
+.docsel{display:flex;gap:2px;background:#14171400;border:1px solid var(--app-line);border-radius:2px;padding:2px;}
+.docsel button{
+  background:transparent;border:0;color:var(--app-dim);cursor:pointer;border-radius:1px;
+  font:500 10px/1 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.12em;
+  text-transform:uppercase;padding:9px 13px;
+}
+.docsel button[aria-selected="true"]{background:var(--brass-deep);color:#fff;}
+.spacer{margin-left:auto;}
+.btn{
+  background:transparent;border:1px solid var(--app-line);color:var(--app-ink);cursor:pointer;
+  font:500 10px/1 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.12em;
+  text-transform:uppercase;padding:10px 13px;border-radius:2px;
+}
+.btn:hover{border-color:var(--brass);color:var(--brass);}
+.btn-go{background:var(--brass-deep);border-color:var(--brass-deep);color:#fff;}
+.btn-go:hover{background:var(--brass);border-color:var(--brass);color:#141714;}
+.link{background:none;border:0;color:var(--brass);cursor:pointer;font:inherit;text-decoration:underline;padding:0;}
+
+.state{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:9px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--app-dim);border:1px solid var(--app-line);
+  padding:6px 9px;border-radius:2px;white-space:nowrap;
+}
+.state.live{color:#7FB27F;border-color:#31452F;}
+.state.demo{color:var(--brass);border-color:#42381F;}
+
+.main{flex:1;display:grid;grid-template-columns:392px 1fr;min-height:0;}
+
+/* ============================ INPUT PANEL ============================ */
+.panel{
+  background:var(--app-panel);border-right:1px solid var(--app-line);
+  overflow-y:auto;padding-bottom:150px;
+}
+.sec{border-bottom:1px solid var(--app-line);}
+.sec>summary{
+  list-style:none;cursor:pointer;padding:13px 16px;display:flex;align-items:center;gap:9px;
+  font:600 10px/1 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--app-dim);
+}
+.sec>summary::-webkit-details-marker{display:none;}
+.sec>summary::before{content:"+";color:var(--brass);font-size:12px;width:10px;}
+.sec[open]>summary::before{content:"–";}
+.sec[open]>summary{color:var(--brass);}
+.secbody{padding:2px 16px 18px;display:grid;gap:11px;}
+.f{display:grid;gap:5px;}
+.f>label{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:9px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--app-dim);
+}
+.f input,.f select,.f textarea{
+  width:100%;background:#141714;border:1px solid var(--app-line);color:var(--app-ink);
+  padding:9px 10px;border-radius:2px;font:400 13px/1.4 "Archivo",Arial,sans-serif;
+}
+.f input[type=number]{font-family:"IBM Plex Mono",ui-monospace,monospace;text-align:right;}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--brass);}
+.f textarea{resize:vertical;min-height:56px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;}
+.hintline{font-size:11px;color:var(--app-dim);line-height:1.5;}
+.callout{
+  margin:14px 16px 4px;padding:14px 15px;border:1px solid var(--brass);
+  background:rgba(192,154,70,.09);border-radius:2px;display:grid;gap:10px;justify-items:start;
+}
+.callout p{margin:0;font-size:12px;line-height:1.55;color:var(--app-ink);}
+.callout b{color:var(--brass);}
+.hintline b{color:var(--brass);font-weight:500;}
+
+.toggles{display:flex;flex-wrap:wrap;gap:6px;}
+.tg{
+  border:1px solid var(--app-line);background:transparent;color:var(--app-dim);cursor:pointer;
+  font:500 9.5px/1 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.08em;
+  text-transform:uppercase;padding:8px 10px;border-radius:2px;
+}
+.tg[aria-pressed="true"]{border-color:var(--brass);background:rgba(192,154,70,.12);color:var(--brass);}
+
+.readout{
+  position:fixed;bottom:0;left:0;width:392px;background:#101310;
+  border-top:1px solid var(--app-line);border-right:1px solid var(--app-line);
+  padding:12px 16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;
+}
+.ro{min-width:0;}
+.ro span{
+  display:block;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:8.5px;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--app-dim);margin-bottom:3px;
+}
+.ro b{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:14px;font-weight:500;
+  font-variant-numeric:tabular-nums;}
+.ro.hero b{color:var(--brass);font-size:19px;}
+.ro.warn b{color:#D98B6A;}
+
+/* ============================ DOCUMENT STAGE ============================ */
+.stage{overflow-y:auto;padding:28px 28px 70px;background:#0D0F0D;}
+.sheet{
+  max-width:840px;margin:0 auto;background:var(--paper);color:var(--ink);
+  padding:56px 60px 50px;position:relative;border:1px solid #2B302B;
+  box-shadow:0 22px 54px -22px rgba(0,0,0,.85);
+}
+.sheet[hidden]{display:none;}
+.reg{position:absolute;width:14px;height:14px;opacity:.55;}
+.reg-tl{top:15px;left:15px;border-top:1px solid var(--docbrass);border-left:1px solid var(--docbrass);}
+.reg-tr{top:15px;right:15px;border-top:1px solid var(--docbrass);border-right:1px solid var(--docbrass);}
+.reg-bl{bottom:15px;left:15px;border-bottom:1px solid var(--docbrass);border-left:1px solid var(--docbrass);}
+.reg-br{bottom:15px;right:15px;border-bottom:1px solid var(--docbrass);border-right:1px solid var(--docbrass);}
+
+.mast{display:flex;justify-content:space-between;align-items:flex-start;gap:36px;}
+.wordmark{font-family:"Bodoni Moda",Georgia,serif;font-size:29px;font-weight:500;line-height:1.06;margin:0 0 7px;}
+.tagline{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:9px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--docbrass);}
+.issuer{margin-top:8px;font-size:11.5px;color:var(--ink-3);line-height:1.65;}
+.dt{text-align:right;flex:0 0 auto;}
+.dt h2{font-family:"Bodoni Moda",Georgia,serif;font-size:14px;font-weight:600;letter-spacing:.3em;
+  text-transform:uppercase;margin:0 0 11px;color:var(--docbrass);}
+.meta{display:grid;grid-template-columns:auto auto;gap:3px 15px;justify-content:end;}
+.meta dt{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:8.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-3);text-align:right;padding-top:2px;}
+.meta dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11.5px;
+  font-variant-numeric:tabular-nums;text-align:right;}
+
+.hr{height:1px;background:var(--rule);margin:24px 0;}
+.hrb{height:2px;background:linear-gradient(90deg,var(--docbrass) 0%,var(--docbrass) 46%,var(--rule) 100%);margin:24px 0;}
+.eyebrow{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:8.5px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--ink-3);margin:0 0 13px;}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:36px;}
+.pname{font-size:15px;font-weight:600;margin:0 0 4px;}
+.pline{font-size:12px;color:var(--ink-2);line-height:1.7;}
+
+.spec{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--rule-soft);}
+.spec>div{padding:12px 16px 12px 0;border-bottom:1px solid var(--rule-soft);}
+.spec>div.w2{grid-column:span 2;}
+.spec>div.w3{grid-column:1 / -1;}
+.spec dt{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:8.5px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-3);margin-bottom:4px;}
+.spec dd{margin:0;font-size:13px;font-weight:500;line-height:1.4;}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px;}
+.chip{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:9.5px;letter-spacing:.08em;
+  text-transform:uppercase;padding:7px 11px;border:1px solid var(--docbrass);
+  background:var(--wash);color:var(--docbrass);font-weight:500;}
+
+.comm{border-top:2px solid var(--ink);border-bottom:1px solid var(--rule);padding:20px 0 18px;
+  display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:24px;align-items:end;}
+.fig dt{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:8.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-3);margin-bottom:6px;}
+.fig dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:18px;
+  font-variant-numeric:tabular-nums;}
+.fig.tot{text-align:right;}
+.fig.tot dt{color:var(--docbrass);}
+.fig.tot dd{font-family:"Bodoni Moda",Georgia,serif;font-size:36px;font-weight:500;line-height:1;
+  color:var(--docbrass);}
+.tier{display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:24px;align-items:center;
+  padding:12px 0;border-bottom:1px solid var(--rule-soft);}
+.tier .l{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:9px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--ink-3);}
+.tier .m{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12.5px;font-variant-numeric:tabular-nums;}
+.tier .r{text-align:right;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:14px;
+  font-weight:600;font-variant-numeric:tabular-nums;}
+.note{margin:10px 0 0;font-size:11.5px;color:var(--ink-3);max-width:64ch;line-height:1.6;}
+.pgbreak{display:none;}
+
+.terms{display:grid;grid-template-columns:1fr 1fr;gap:0 40px;}
+.terms>div{padding:10px 0;border-bottom:1px solid var(--rule-soft);}
+.terms dt{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:8.5px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-3);margin-bottom:4px;}
+.terms dd{margin:0;font-size:12px;line-height:1.55;color:var(--ink-2);}
+
+.close{margin-top:28px;display:flex;justify-content:space-between;align-items:flex-end;gap:36px;}
+.close p{margin:0;font-size:12px;color:var(--ink-2);max-width:54ch;line-height:1.7;}
+.sign{flex:0 0 210px;text-align:right;}
+.sign .l{height:1px;background:var(--ink);margin-bottom:6px;}
+.sign span{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:8.5px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-3);}
+
+.goods{width:100%;border-collapse:collapse;}
+.goods th{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:8.5px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-3);text-align:left;padding:0 12px 8px 0;
+  border-bottom:1px solid var(--ink);font-weight:500;}
+.goods th.r,.goods td.r{text-align:right;padding-right:0;}
+.goods td{padding:14px 12px 14px 0;border-bottom:1px solid var(--rule-soft);font-size:12.5px;vertical-align:top;}
+.goods td.n{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;}
+.goods .sub{display:block;font-size:11px;color:var(--ink-3);margin-top:3px;line-height:1.5;}
+
+.pay{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-top:20px;}
+.pay>div{border:1px solid var(--rule);padding:15px 16px;}
+.pay>div.due{border:1.5px solid var(--docbrass);background:var(--wash);}
+.pay dt{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:8.5px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-3);margin-bottom:5px;}
+.pay>div.due dt{color:var(--docbrass);}
+.pay dd{margin:0;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:19px;font-variant-numeric:tabular-nums;}
+.pay .w{display:block;font-family:"Archivo",Arial,sans-serif;font-size:11px;color:var(--ink-3);margin-top:4px;}
+
+.bank{display:grid;grid-template-columns:1fr 1fr;gap:0 36px;}
+.bank>div{display:grid;grid-template-columns:120px 1fr;gap:12px;padding:8px 0;border-bottom:1px solid var(--rule-soft);}
+.bank>div>span:first-child{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:8.5px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);padding-top:3px;}
+.bank>div>span:last-child{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12px;}
+
+.cond{margin:0;padding:0;list-style:none;counter-reset:c;}
+.cond li{counter-increment:c;position:relative;padding:7px 0 7px 30px;font-size:12px;
+  color:var(--ink-2);line-height:1.6;}
+.cond li::before{content:counter(c,decimal-leading-zero);position:absolute;left:0;top:8px;
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:9px;color:var(--docbrass);}
+
+/* ============================ MODALS ============================ */
+.scrim{position:fixed;inset:0;background:rgba(8,10,8,.72);display:flex;align-items:center;
+  justify-content:center;padding:24px;z-index:50;}
+.scrim[hidden]{display:none;}
+.modal{background:var(--app-panel);border:1px solid var(--app-line);width:100%;max-width:840px;
+  max-height:88vh;display:flex;flex-direction:column;border-radius:3px;}
+.modal header{display:flex;align-items:center;gap:12px;padding:15px 20px;border-bottom:1px solid var(--app-line);}
+.modal header h3{margin:0;font:600 11px/1 "IBM Plex Mono",ui-monospace,monospace;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--brass);}
+.modal .body{overflow-y:auto;padding:20px;display:grid;gap:14px;}
+.modal footer{padding:14px 20px;border-top:1px solid var(--app-line);display:flex;gap:8px;justify-content:flex-end;}
+.qrow{display:grid;grid-template-columns:100px 1fr 110px 30px;gap:12px;align-items:center;
+  padding:11px 12px;border:1px solid var(--app-line);cursor:pointer;border-radius:2px;}
+.qrow:hover{border-color:var(--brass);}
+.qrow .no{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;color:var(--brass);}
+.qrow .cl{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.qrow .pr{font-size:11px;color:var(--app-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.qrow .v{text-align:right;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12px;}
+.qrow .st{text-align:right;font-size:10px;color:var(--app-dim);}
+.del{background:none;border:0;color:var(--app-dim);cursor:pointer;font-size:15px;line-height:1;}
+.del:hover{color:#D98B6A;}
+.rtab{width:100%;border-collapse:collapse;}
+.rtab th{font:500 9px/1 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--app-dim);text-align:left;padding:0 10px 8px 0;}
+.rtab td{padding:4px 10px 4px 0;}
+.rtab input{width:100%;background:#141714;border:1px solid var(--app-line);color:var(--app-ink);
+  padding:7px 9px;border-radius:2px;font:400 12px/1.3 "Archivo",Arial,sans-serif;}
+.rtab input.n{font-family:"IBM Plex Mono",ui-monospace,monospace;text-align:right;}
+.rtab input:focus{outline:none;border-color:var(--brass);}
+.grp{border:1px solid var(--app-line);padding:16px;border-radius:2px;}
+.grp>h4{margin:0 0 12px;font:600 9.5px/1 "IBM Plex Mono",ui-monospace,monospace;
+  letter-spacing:.15em;text-transform:uppercase;color:var(--brass);}
+
+.toast{position:fixed;bottom:22px;right:22px;background:var(--brass-deep);color:#fff;
+  padding:13px 20px;border-radius:2px;z-index:80;
+  font:500 11px/1 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;}
+.toast[hidden]{display:none;}
+
+/* ============================ PRINT — keeps the colour ============================ */
+/* margin 0 so the page ground reaches every edge; the inset is the sheet's own padding */
+@page{size:A4;margin:0;}
+@media print{
+  html{background:#1A1E1B;}
+  html.doc-bw{background:#FFFFFF;}
+  .topbar,.panel,.readout,.scrim,.toast{display:none !important;}
+  .app{display:block;height:auto;}
+  .main{display:block;}
+  .stage{overflow:visible;padding:0;background:transparent;}
+  body{background:transparent;font-size:9.6pt;}
+  .sheet{max-width:none;margin:0;padding:15mm 14mm;box-shadow:none;border:0;background:transparent;}
+  /* the document always breaks in the same designed place, and the new page
+     opens with the same top inset as the first */
+  .pgbreak{display:block;height:15mm;break-before:page;page-break-before:always;}
+  .sheet[hidden]{display:none !important;}
+  .reg{display:none;}
+  .eyebrow{break-after:avoid;page-break-after:avoid;margin-bottom:10px;}
+  .mast,.comm,.tier,.two,.pay,.pay>div,.close,.spec>div,.terms>div,.bank>div,
+  .goods tr,.cond li{break-inside:avoid;page-break-inside:avoid;}
+  p,dd,li{orphans:3;widows:3;}
+  .hr,.hrb{margin:17px 0;}
+  .wordmark{font-size:19pt;}
+  .issuer{font-size:8.6pt;}
+  .dt h2{font-size:11pt;}
+  .meta dd{font-size:9.4pt;}
+  .pname{font-size:11.5pt;}
+  .pline{font-size:9pt;}
+  .spec>div{padding:9px 14px 9px 0;}
+  .spec dd{font-size:9.5pt;}
+  .comm{padding:14px 0 12px;}
+  .fig dd{font-size:14pt;}
+  .fig.tot dd{font-size:26pt;}
+  .note{font-size:8.6pt;}
+  .terms>div{padding:7px 0;}
+  .terms dd{font-size:8.8pt;}
+  .close{margin-top:20px;}
+  .close p{font-size:8.8pt;}
+  .goods td{padding:11px 12px 11px 0;font-size:9.5pt;}
+  .pay dd{font-size:15pt;}
+  .cond li{padding:5px 0 5px 28px;font-size:8.8pt;}
+}
+@media (max-width:1080px){
+  .main{grid-template-columns:1fr;}
+  .panel{max-height:52vh;}
+  .readout{width:100%;}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important;}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="topbar">
+    <div class="brand"><b>Press Docket</b></div>
+    <div class="docsel" role="tablist">
+      <button role="tab" aria-selected="true" data-doc="quote">Quotation</button>
+      <button role="tab" aria-selected="false" data-doc="pi">Proforma Invoice</button>
+    </div>
+    <div class="spacer"></div>
+    <div class="state" id="state">connecting…</div>
+    <button class="btn" id="b-new">New</button>
+    <button class="btn" id="b-open">Open</button>
+    <button class="btn" id="b-rates">Rates</button>
+    <button class="btn" id="b-settings">My company</button>
+    <button class="btn" id="b-mail">Email</button>
+    <button class="btn" id="b-save">Save</button>
+    <button class="btn" id="b-print" title="Black &amp; white, for paper">Print B&amp;W</button>
+    <button class="btn btn-go" id="b-pdf" title="Dark PDF, for sending to the client">PDF</button>
+  </div>
+
+  <div class="main">
+    <aside class="panel" id="panel"></aside>
+    <section class="stage">
+      <article class="sheet" id="doc-quote"></article>
+      <article class="sheet" id="doc-pi" hidden></article>
+    </section>
+  </div>
+
+  <div class="readout" id="readout"></div>
+</div>
+
+<div class="scrim" id="scrim" hidden><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function () {
+"use strict";
+
+/* ====================== ENVIRONMENT ====================== */
+var LIVE = (typeof google !== 'undefined' && google.script && google.script.run);
+var LS = 'press-docket-demo-v1';
+
+var DEFAULT_RATES = {
+  plate:1200, print:900, proof:3500, uv_setup:3000, uv_run:3.5,
+  foil_block:45, foil_run:2.5, emb_block:60, emb_run:2,
+  dc_run:1800, paste:2.5, pack:1.5,
+  waste:0.07, setup_sheets:200, overhead:0.08,
+  fx:285, margin:0.4, fr_dhl:9, fr_air:5.5, fr_sea:180, docs:120, bank_pct:0.02
+};
+var RATE_META = [
+  ['plate','Plate cost, per plate','PKR each'],
+  ['print','Printing, per 1,000 impressions per colour','PKR'],
+  ['proof','Digital proof / dummy sample','PKR per job'],
+  ['uv_setup','Spot UV / drip-off screen or plate','PKR per job'],
+  ['uv_run','Spot UV / drip-off running rate','PKR per sheet'],
+  ['foil_block','Hot foil block making','PKR per sq.in'],
+  ['foil_run','Hot foil running rate incl. foil','PKR per sheet'],
+  ['emb_block','Emboss / deboss block making','PKR per sq.in'],
+  ['emb_run','Emboss / deboss running rate','PKR per sheet'],
+  ['dc_run','Die cutting running rate','PKR per 1,000 sheets'],
+  ['paste','Pasting / gluing','PKR per piece'],
+  ['pack','Packing, labour & inspection','PKR per piece'],
+  ['waste','Wastage allowance','fraction, e.g. 0.07 = 7%'],
+  ['setup_sheets','Make-ready / setup sheets','sheets per job'],
+  ['overhead','Factory overhead','fraction of direct cost'],
+  ['fx','USD / PKR rate','update before every quote'],
+  ['margin','Target gross margin','fraction, e.g. 0.4 = 40%'],
+  ['fr_dhl','DHL / FedEx express','USD per kg'],
+  ['fr_air','Air freight, consolidated','USD per kg'],
+  ['fr_sea','Sea freight LCL','USD per CBM'],
+  ['docs','Export docs, clearance & handling','USD per shipment'],
+  ['bank_pct','Bank / payment charges','fraction of invoice value']
+];
+var DEFAULT_BOARDS = [
+  {name:'Art Card (C1S)', pkr_per_kg:420, note:'General cartons, cosmetics, food sleeves'},
+  {name:'SBS / Ivory Board', pkr_per_kg:520, note:'Premium white-back — cosmetics, chocolate'},
+  {name:'Kraft (Natural Brown)', pkr_per_kg:320, note:'Organic positioning — candles, soap'},
+  {name:'Duplex Grey Back', pkr_per_kg:300, note:'Budget cartons, inner packs'},
+  {name:'Textured / Specialty', pkr_per_kg:900, note:'Rigid box wraps, luxury sleeves'},
+  {name:'Metalized Board', pkr_per_kg:780, note:'Silver / gold base for metallic printing'},
+  {name:'Greyboard (rigid base)', pkr_per_kg:260, note:'Rigid box chipboard core'}
+];
+var DEFAULT_FILMS = [
+  {name:'None', pkr_per_sqin:0, note:'No lamination'},
+  {name:'Gloss BOPP', pkr_per_sqin:0.012, note:'Cheapest, high shine'},
+  {name:'Matte BOPP', pkr_per_sqin:0.015, note:'Premium base — required under drip-off'},
+  {name:'Soft Touch / Velvet', pkr_per_sqin:0.045, note:'Luxury feel — best upsell'},
+  {name:'Metalized / MetPET', pkr_per_sqin:0.055, note:'Mirror metallic base'},
+  {name:'Holographic', pkr_per_sqin:0.065, note:'Rainbow effect — vape, confectionery'},
+  {name:'Anti-Scuff Matte', pkr_per_sqin:0.022, note:'Matte that resists finger marks'}
+];
+var DEFAULT_SETTINGS = {
+  company:'Meridian Print & Pack', tagline:'Decorative Print Specialists · Lahore',
+  address:'12-C Gulberg III, Lahore 54660, Pakistan',
+  email:'hello@meridianprintpack.com', phone:'+92 300 0000000', whatsapp:'+92 300 0000000',
+  ntn:'0000000-0', rep_name:'Mehboob Ahmed', rep_role:'Director — Production',
+  bank_benef:'Meridian Print & Pack', bank_name:'', bank_branch:'', bank_iban:'', bank_swift:'',
+  bank_payoneer:'USD / GBP / EUR receiving account — on request',
+  quote_prefix:'QT-2026-', quote_next:1, pi_prefix:'PI-2026-', pi_next:1
+};
+
+var DB = { settings:{}, rates:{}, boards:[], films:[], clients:[], quotes:[] };
+
+/* ====================== STATE ====================== */
+var EXTRA_FINISHES = ['Window patch','Ribbon pull','Magnetic closure','Edge painting','Braille panel'];
+
+function blankJob(){
+  return {
+    quote_no:'', date:todayISO(), status:'Draft', pi_no:'', po_ref:'',
+    client_name:'', client_contact:'', client_country:'', client_email:'', client_address:'',
+    product:'', style:'Straight Tuck End (STE)', qty:5000,
+    len:45, wid:45, hgt:120, flap:15, flat_w:195, flat_h:210,
+    board:'SBS / Ivory Board', gsm:350, psw:635, psh:965, trim_w:10, trim_h:17,
+    col_f:5, col_b:0,
+    lam:'Soft Touch / Velvet', uv:'Yes', foil:'Yes', foil_area:6, emb:'No', emb_area:4,
+    other_pkr:0, extras:[],
+    die_cost:8000, local_tr:4000,
+    pack_pct:0.08, cbm:1.8, mode:'Air Freight',
+    qty2:10000, unit2:0, unit2_auto:'Yes',
+    validity:'15 days', lead_time:'12–15', transit:'6–9',
+    hs_code:'4819.2000', cartons:6, notes:''
+  };
+}
+var job = blankJob();
+var activeDoc = 'quote';
+
+function todayISO(){
+  var d = new Date();
+  return d.getFullYear() + '-' + ('0'+(d.getMonth()+1)).slice(-2) + '-' + ('0'+d.getDate()).slice(-2);
+}
+function prettyDate(iso){
+  if(!iso) return '';
+  var p = String(iso).split('-');
+  if(p.length !== 3) return String(iso);
+  var m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return Number(p[2]) + ' ' + m[Number(p[1])-1] + ' ' + p[0];
+}
+function n(v){ var x = parseFloat(v); return isFinite(x) ? x : 0; }
+function esc(s){
+  return String(s === undefined || s === null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function int(v){ return Math.round(n(v)).toLocaleString('en-US'); }
+function usd(v, dp){
+  dp = dp === undefined ? 2 : dp;
+  return '$' + n(v).toLocaleString('en-US',{minimumFractionDigits:dp, maximumFractionDigits:dp});
+}
+function unitStr(v){
+  var s = usd(v, 4);
+  if(s.indexOf('.') > -1) s = s.replace(/0+$/,'').replace(/\.$/,'');
+  return s;
+}
+function pkr(v){ return n(v).toLocaleString('en-US',{maximumFractionDigits:0}); }
+
+/* ====================== COSTING ENGINE ====================== */
+function rate(k){
+  var v = DB.rates[k];
+  return (v === undefined || v === '' || v === null) ? n(DEFAULT_RATES[k]) : n(v);
+}
+function boardRate(name){
+  for(var i=0;i<DB.boards.length;i++) if(DB.boards[i].name === name) return n(DB.boards[i].pkr_per_kg);
+  return 0;
+}
+function filmRate(name){
+  for(var i=0;i<DB.films.length;i++) if(DB.films[i].name === name) return n(DB.films[i].pkr_per_sqin);
+  return 0;
+}
+
+function imposition(){
+  var ew = n(job.psw) - n(job.trim_w);
+  var eh = n(job.psh) - n(job.trim_h);
+  var fw = n(job.flat_w), fh = n(job.flat_h);
+  if(fw <= 0 || fh <= 0 || ew <= 0 || eh <= 0) return {ew:ew, eh:eh, ups:0};
+  var a = Math.floor(ew/fw) * Math.floor(eh/fh);
+  var b = Math.floor(ew/fh) * Math.floor(eh/fw);
+  return {ew:ew, eh:eh, ups:Math.max(a,b)};
+}
+
+/* Full recost at any quantity. Tooling and make-ready do not repeat. */
+function costFor(qty){
+  var imp = imposition();
+  var ups = imp.ups;
+  if(ups <= 0 || qty <= 0){
+    return {ups:0, gross:0, total:0, perPc:0, exw:0, exwPc:0, freight:0,
+            ddp:0, ddpPc:0, profit:0, kgTotal:0};
+  }
+  var net = Math.ceil(qty/ups);
+  var gross = Math.ceil(net * (1 + rate('waste'))) + rate('setup_sheets');
+  var kgSheet = (n(job.psw)*n(job.psh)/1e6) * n(job.gsm) / 1000;
+  var area = (n(job.psw)/25.4) * (n(job.psh)/25.4);
+  var plates = n(job.col_f) + n(job.col_b);
+
+  var c = {
+    paper: gross * kgSheet * boardRate(job.board),
+    plate: plates * rate('plate'),
+    print: gross/1000 * rate('print') * plates,
+    proof: rate('proof'),
+    lam:   gross * area * filmRate(job.lam),
+    uv:    job.uv === 'Yes' ? rate('uv_setup') + gross * rate('uv_run') : 0,
+    foil:  job.foil === 'Yes' ? n(job.foil_area) * rate('foil_block') + gross * rate('foil_run') : 0,
+    emb:   job.emb === 'Yes' ? n(job.emb_area) * rate('emb_block') + gross * rate('emb_run') : 0,
+    die:   n(job.die_cost),
+    dc:    gross/1000 * rate('dc_run'),
+    paste: qty * rate('paste'),
+    pack:  qty * rate('pack'),
+    other: n(job.other_pkr),
+    tr:    n(job.local_tr)
+  };
+  var direct = 0;
+  for(var k in c) direct += c[k];
+  var total = direct * (1 + rate('overhead'));
+
+  var margin = rate('margin');
+  var fx = rate('fx');
+  var exw = (margin >= 1 || fx <= 0) ? 0 : total / (1 - margin) / fx;
+
+  var boxKg = (n(job.flat_w) * n(job.flat_h) / 1e6) * n(job.gsm) / 1000;
+  var grossKg = boxKg * qty * (1 + n(job.pack_pct));
+  var freight = job.mode === 'Sea LCL' ? n(job.cbm) * rate('fr_sea')
+              : job.mode === 'DHL Express' ? grossKg * rate('fr_dhl')
+              : grossKg * rate('fr_air');
+  var bankFee = exw * rate('bank_pct');
+  var ddp = exw + freight + rate('docs') + bankFee;
+
+  return {
+    ups:ups, gross:gross, parts:c, direct:direct, total:total, perPc:total/qty,
+    exw:exw, exwPc:exw/qty, freight:freight, bankFee:bankFee,
+    ddp:ddp, ddpPc:ddp/qty, profit:fx > 0 ? exw - total/fx : 0,
+    kgTotal:grossKg, boxKg:boxKg
+  };
+}
+
+function calc(){
+  var m = costFor(n(job.qty));
+  var b = costFor(n(job.qty2));
+  m.unit2 = job.unit2_auto === 'Yes' ? b.ddpPc : n(job.unit2);
+  m.unit2Auto = b.ddpPc;
+  m.total2 = n(job.qty2) * m.unit2;
+  m.marginPct = m.ddp > 0 ? m.profit / m.ddp : 0;
+  return m;
+}
+
+function finishList(){
+  var out = [];
+  if(job.foil === 'Yes') out.push('Hot foil');
+  if(job.uv === 'Yes') out.push('Drip-off / spot UV');
+  if(job.emb === 'Yes') out.push('Emboss / deboss');
+  if(job.lam && job.lam !== 'None') out.push(job.lam);
+  (job.extras || []).forEach(function(e){ out.push(e); });
+  return out;
+}
+
+/* ====================== INPUT PANEL ====================== */
+var PANEL = [
+  {t:'Client', open:true, f:[
+    {k:'client_name', l:'Company', type:'text', list:'clientlist'},
+    {k:'client_contact', l:'Contact person', type:'text'},
+    {k:'client_country', l:'City, country', type:'text'},
+    {k:'client_email', l:'Email', type:'text'},
+    {k:'client_address', l:'Delivery address', type:'text'},
+    {btn:'Save this client to the directory', act:'saveClient'}
+  ]},
+  {t:'Job', open:true, f:[
+    {k:'product', l:'Product / job name', type:'text'},
+    {k:'style', l:'Box style', type:'select', opts:[
+      'Straight Tuck End (STE)','Reverse Tuck End (RTE)','Auto-Lock Bottom','Seal End','Sleeve',
+      'Pillow Box','Gable Box','Window Carton','Rigid Two-Piece','Rigid Magnetic',
+      'Drawer / Matchbox','Rigid Tube','Mailer / Roll-End','Display Box (PDQ)']},
+    {k:'qty', l:'Order quantity (pcs)', type:'num'}
+  ]},
+  {t:'Box size & dieline', open:true, f:[
+    {g:['len','wid','hgt'], l:['Length L (mm)','Width W (mm)','Height H (mm)'], type:'num'},
+    {g:['flap','flat_w','flat_h'], l:['Glue flap','Flat width','Flat height'], type:'num'},
+    {btn:'Calculate flat size from L × W × H', act:'autoFlat'},
+    {info:'flat'}
+  ]},
+  {t:'Board & press', open:true, f:[
+    {k:'board', l:'Board type', type:'select', opts:'boards'},
+    {g:['gsm','psw','psh'], l:['Board GSM','Press sheet W','Press sheet H'], type:'num'},
+    {g:['trim_w','trim_h'], l:['Trim across width','Gripper + tail'], type:'num'},
+    {info:'ups'}
+  ]},
+  {t:'Printing', open:true, f:[
+    {g:['col_f','col_b'], l:['Colours front','Colours back'], type:'num'}
+  ]},
+  {t:'Decorative finishes', open:true, f:[
+    {k:'lam', l:'Lamination / film', type:'select', opts:'films'},
+    {toggles:['uv','foil','emb'], l:['Spot UV / drip-off','Hot foiling','Emboss / deboss']},
+    {g:['foil_area','emb_area'], l:['Foil block area (sq.in)','Emboss block area (sq.in)'], type:'num'},
+    {k:'other_pkr', l:'Other finishing cost (PKR, whole job)', type:'num'},
+    {extras:true}
+  ]},
+  {t:'Tooling', f:[
+    {g:['die_cost','local_tr'], l:['Cutting die (PKR)','Local transport (PKR)'], type:'num'}
+  ]},
+  {t:'Freight', open:true, f:[
+    {k:'mode', l:'Freight mode', type:'select', opts:['DHL Express','Air Freight','Sea LCL']},
+    {g:['pack_pct','cbm'], l:['Carton allowance (0.08 = 8%)','Volume (CBM, sea only)'], type:'num'},
+    {info:'weight'}
+  ]},
+  {t:'Option B — the upsell', f:[
+    {k:'qty2', l:'Higher quantity (pcs)', type:'num'},
+    {k:'unit2_auto', l:'Price it automatically?', type:'select', opts:['Yes','No']},
+    {k:'unit2', l:'Unit price if manual (USD)', type:'num', step:'0.0001'},
+    {info:'optionb'}
+  ]},
+  {t:'Document details', f:[
+    {k:'quote_no', l:'Quotation number', type:'text', ph:'blank — set when you save'},
+    {k:'date', l:'Date', type:'date'},
+    {k:'status', l:'Status', type:'select', opts:[
+      'Draft','Quote sent','Follow-up 1','Follow-up 2','Sample approved','PO received',
+      'Advance received','In production','Balance received','Dispatched','Delivered','Lost']},
+    {g:['validity','lead_time','transit'], l:['Valid for','Lead time (days)','Transit (days)'], type:'text'},
+    {k:'pi_no', l:'Proforma invoice number', type:'text', ph:'blank — set on the PI tab'},
+    {btn:'Give this quote a PI number', act:'newPi'},
+    {k:'po_ref', l:'Client PO reference', type:'text'},
+    {g:['hs_code','cartons'], l:['HS code','Export cartons'], type:'text'},
+    {k:'notes', l:'Internal notes (never printed)', type:'area'}
+  ]}
+];
+
+function fieldHtml(k, label, type, opts, extra){
+  var v = job[k];
+  var id = 'i_' + k;
+  var h = '<div class="f"><label for="'+id+'">'+esc(label)+'</label>';
+  if(type === 'select'){
+    var list = opts === 'boards' ? DB.boards.map(function(b){return b.name;})
+             : opts === 'films' ? DB.films.map(function(f){return f.name;})
+             : opts;
+    h += '<select id="'+id+'" data-k="'+k+'">';
+    if(list.indexOf(v) === -1 && v) h += '<option value="'+esc(v)+'" selected>'+esc(v)+'</option>';
+    list.forEach(function(o){
+      h += '<option value="'+esc(o)+'"'+(o === v ? ' selected' : '')+'>'+esc(o)+'</option>';
+    });
+    h += '</select>';
+  } else if(type === 'area'){
+    h += '<textarea id="'+id+'" data-k="'+k+'">'+esc(v)+'</textarea>';
+  } else if(type === 'num'){
+    h += '<input id="'+id+'" data-k="'+k+'" type="number" step="'+(extra && extra.step ? extra.step : 'any')+'" value="'+esc(v)+'">';
+  } else if(type === 'date'){
+    h += '<input id="'+id+'" data-k="'+k+'" type="date" value="'+esc(v)+'">';
+  } else {
+    h += '<input id="'+id+'" data-k="'+k+'" type="text" value="'+esc(v)+'"'
+       + (extra && extra.list ? ' list="'+extra.list+'"' : '')
+       + (extra && extra.ph ? ' placeholder="'+esc(extra.ph)+'"' : '') + '>';
+  }
+  return h + '</div>';
+}
+
+var SEC_OPEN = {};
+try{ SEC_OPEN = JSON.parse(localStorage.getItem('press-docket-sections') || '{}') || {}; }catch(e){ SEC_OPEN = {}; }
+
+function sectionOpen(sec){
+  return Object.prototype.hasOwnProperty.call(SEC_OPEN, sec.t) ? !!SEC_OPEN[sec.t] : !!sec.open;
+}
+
+function renderPanel(){
+  var h = '<datalist id="clientlist">';
+  DB.clients.forEach(function(c){ h += '<option value="'+esc(c.name)+'">'; });
+  h += '</datalist>';
+
+  if(isPlaceholderCompany()){
+    h += '<div class="callout"><p>The documents still show the sample company '
+      + '<b>' + esc(DEFAULT_SETTINGS.company) + '</b>. Put your own name, address and bank '
+      + 'details in once — they are remembered.</p>'
+      + '<button class="btn" data-act="openSettings">Set up my company</button></div>';
+  }
+
+  PANEL.forEach(function(sec){
+    h += '<details class="sec" data-sec="'+esc(sec.t)+'"'+(sectionOpen(sec) ? ' open' : '')+'><summary>'+esc(sec.t)+'</summary><div class="secbody">';
+    sec.f.forEach(function(row){
+      if(row.btn){
+        h += '<button class="btn" data-act="'+row.act+'" style="justify-self:start">'+esc(row.btn)+'</button>';
+      } else if(row.info){
+        h += '<div class="hintline" data-info="'+row.info+'"></div>';
+      } else if(row.toggles){
+        h += '<div class="toggles">';
+        row.toggles.forEach(function(k, i){
+          h += '<button class="tg" data-tg="'+k+'" aria-pressed="'+(job[k] === 'Yes')+'">'+esc(row.l[i])+'</button>';
+        });
+        h += '</div>';
+      } else if(row.extras){
+        h += '<label class="f"><span style="font-family:\'IBM Plex Mono\',monospace;font-size:9px;'
+           + 'letter-spacing:.11em;text-transform:uppercase;color:var(--app-dim)">Also show on the document</span></label>'
+           + '<div class="toggles">';
+        EXTRA_FINISHES.forEach(function(e){
+          h += '<button class="tg" data-extra="'+esc(e)+'" aria-pressed="'+((job.extras||[]).indexOf(e) > -1)+'">'+esc(e)+'</button>';
+        });
+        h += '</div>';
+      } else if(row.g){
+        h += '<div class="row'+row.g.length+'">';
+        row.g.forEach(function(k, i){ h += fieldHtml(k, row.l[i], row.type, null, row); });
+        h += '</div>';
+      } else {
+        h += fieldHtml(row.k, row.l, row.type, row.opts, row);
+      }
+    });
+    h += '</div></details>';
+  });
+  document.getElementById('panel').innerHTML = h;
+}
+
+function renderInfo(m){
+  var imp = imposition();
+  var map = {
+    flat: 'Suggested for a tuck end: <b>' + int(2*(n(job.len)+n(job.wid))+n(job.flap)) + ' × '
+        + int(n(job.hgt)+2*n(job.wid)) + ' mm</b>. Override for rigid, sleeve or mailer styles.',
+    ups: imp.ups > 0
+        ? 'Printable area <b>' + int(imp.ew) + ' × ' + int(imp.eh) + ' mm</b> · <b>' + imp.ups
+          + ' ups</b> per sheet · <b>' + int(m.gross) + '</b> sheets to buy'
+        : 'The dieline does not fit this press sheet. Check the flat size.',
+    weight: 'Each box <b>' + n(m.boxKg*1000).toFixed(1) + ' g</b> · shipment <b>'
+        + n(m.kgTotal).toFixed(1) + ' kg</b> · freight <b>' + usd(m.freight, 0) + '</b>',
+    optionb: 'Fully recosted at ' + int(job.qty2) + ' pcs: <b>' + unitStr(m.unit2Auto)
+        + '</b> per box' + (m.ddpPc > 0 ? ' — <b>' + Math.round((1 - m.unit2Auto/m.ddpPc)*100)
+        + '% cheaper</b> than ' + int(job.qty) + ' pcs' : '')
+  };
+  Array.prototype.forEach.call(document.querySelectorAll('[data-info]'), function(el){
+    el.innerHTML = map[el.getAttribute('data-info')] || '';
+  });
+}
+
+function renderReadout(m){
+  var warn = m.marginPct < 0.2 ? ' warn' : '';
+  document.getElementById('readout').innerHTML =
+    '<div class="ro"><span>Cost / pc</span><b>' + n(m.perPc).toFixed(2) + ' PKR</b></div>' +
+    '<div class="ro"><span>Ex works / pc</span><b>' + unitStr(m.exwPc) + '</b></div>' +
+    '<div class="ro hero"><span>Landed / pc</span><b>' + unitStr(m.ddpPc) + '</b></div>' +
+    '<div class="ro"><span>Order value</span><b>' + usd(m.ddp, 0) + '</b></div>' +
+    '<div class="ro"><span>Profit</span><b>' + usd(m.profit, 0) + '</b></div>' +
+    '<div class="ro' + warn + '"><span>Margin on sale</span><b>' + (m.marginPct*100).toFixed(0) + '%</b></div>';
+}
+
+/* ====================== DOCUMENT RENDER ====================== */
+function S(k){ return esc(DB.settings[k] !== undefined && DB.settings[k] !== '' ? DB.settings[k] : (DEFAULT_SETTINGS[k] || '')); }
+
+function masthead(title, meta){
+  var h = '<i class="reg reg-tl"></i><i class="reg reg-tr"></i><i class="reg reg-bl"></i><i class="reg reg-br"></i>'
+    + '<header class="mast"><div>'
+    + '<h1 class="wordmark">' + S('company') + '</h1>'
+    + '<div class="tagline">' + S('tagline') + '</div>'
+    + '<div class="issuer">' + S('address') + '<br>' + meta.contactline + '</div>'
+    + '</div><div class="dt"><h2>' + esc(title) + '</h2><dl class="meta">';
+  meta.rows.forEach(function(r){
+    h += '<dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd>';
+  });
+  return h + '</dl></div></header>';
+}
+
+function renderQuote(m){
+  var fin = finishList();
+  var h = masthead('Quotation', {
+    contactline: S('email') + ' &nbsp;·&nbsp; ' + S('phone'),
+    rows: [['Ref', job.quote_no || '—'], ['Date', prettyDate(job.date)],
+           ['Valid', job.validity], ['Currency', 'USD']]
+  });
+
+  h += '<div class="hrb"></div><section class="two">'
+    + '<div><p class="eyebrow">Prepared for</p><p class="pname">' + esc(job.client_name || '—') + '</p>'
+    + '<div class="pline">' + lines([job.client_contact, job.client_country, job.client_email]) + '</div></div>'
+    + '<div><p class="eyebrow">Your contact</p><p class="pname">' + S('rep_name') + '</p>'
+    + '<div class="pline">' + S('rep_role') + '<br>WhatsApp ' + S('whatsapp')
+    + '<br>Replies within one working day</div></div></section>';
+
+  h += '<div class="hr"></div><p class="eyebrow">Specification</p><dl class="spec">'
+    + spec('Product', job.product, 'w2') + spec('Box style', job.style)
+    + spec('Closed size', int(job.len) + ' × ' + int(job.wid) + ' × ' + int(job.hgt) + ' mm')
+    + spec('Board', job.board + ' ' + int(job.gsm) + ' gsm')
+    + spec('Printing', int(job.col_f) + ' colour outside / ' + int(job.col_b) + ' colour inside')
+    + spec('Lamination', job.lam)
+    + spec('Cutting & forming', 'Die cut, creased, side-seam glued')
+    + spec('Packing', 'Flat-packed, lined export cartons')
+    + spec('Artwork', 'Print-ready PDF supplied by client · dieline supplied by us, free of charge', 'w3')
+    + '</dl>';
+
+  h += '<div class="hr"></div><p class="eyebrow">Decorative finishes included</p><div class="chips">'
+    + (fin.length ? fin.map(function(f){ return '<span class="chip">' + esc(f) + '</span>'; }).join('')
+       : '<span class="pline">Standard finish — no decorative process</span>')
+    + '</div>';
+
+  h += '<div class="hr"></div><p class="eyebrow">Commercial — delivered duty paid</p>'
+    + '<div class="comm">'
+    + '<dl class="fig"><dt>Quantity</dt><dd>' + int(job.qty) + ' pcs</dd></dl>'
+    + '<dl class="fig"><dt>Unit price · DDP</dt><dd>' + unitStr(m.ddpPc) + '</dd></dl>'
+    + '<dl class="fig tot"><dt>Total order value</dt><dd>' + usd(m.ddp, 0) + '</dd></dl>'
+    + '</div><div class="tier"><div class="l">Option B — volume</div>'
+    + '<div class="m">' + int(job.qty2) + ' pcs @ ' + unitStr(m.unit2) + '</div>'
+    + '<div class="r">' + usd(m.total2, 0) + '</div></div>'
+    + '<p class="note">Tooling and press make-ready are the same at either quantity, so the second run is '
+    + 'always the cheaper one. The cutting die and foil block are one-time charges and are stored here '
+    + 'for your repeat orders.</p>';
+
+  h += '<div class="pgbreak"></div>'
+    + '<div class="hr"></div><p class="eyebrow">Terms</p><dl class="terms">'
+    + term('Incoterm', 'DDP — delivered to your address. Freight and duty are inside the unit price. No further charges on arrival.')
+    + term('Lead time', esc(job.lead_time) + ' working days from written artwork approval and receipt of advance.')
+    + term('Freight', esc(job.mode) + ' — transit ' + esc(job.transit) + ' days.')
+    + term('Payment', '50% with the purchase order, 50% against dispatch photographs before the shipment is handed over.')
+    + term('Approval', 'Digital proof issued for written approval before plates are made. Physical pre-production sample on request.')
+    + term('Tolerance', 'Delivered quantity may vary ±5%; invoicing is adjusted to the quantity actually delivered.')
+    + term('Artwork format', 'Print-ready PDF, CMYK, 3 mm bleed, fonts outlined. Foil and spot UV as separate 100% black layers.')
+    + term('Validity', 'Prices hold for ' + esc(job.validity) + ' and assume the USD rate current at the date of issue.')
+    + '</dl>';
+
+  h += '<div class="close"><p>We produce decorative print — foil, drip-off, metalized and soft-touch — '
+    + 'for small premium brands. Send us your logo file and we will return a 3D visual on the exact '
+    + 'dieline above, at no cost and with no obligation.</p>'
+    + '<div class="sign"><div class="l"></div><span>Authorised signature</span></div></div>';
+
+  return h;
+}
+
+function spec(label, value, cls){
+  return '<div' + (cls ? ' class="' + cls + '"' : '') + '><dt>' + esc(label) + '</dt><dd>'
+    + esc(value || '—') + '</dd></div>';
+}
+function term(label, value){
+  return '<div><dt>' + esc(label) + '</dt><dd>' + value + '</dd></div>';
+}
+
+function renderPi(m){
+  var fin = finishList();
+  var h = masthead('Proforma Invoice', {
+    contactline: 'NTN ' + S('ntn') + ' &nbsp;·&nbsp; ' + S('email'),
+    rows: [['PI No.', job.pi_no || '—'], ['Date', prettyDate(job.date)],
+           ['Your PO', job.po_ref || '—'], ['Quotation', job.quote_no || '—']]
+  });
+
+  h += '<div class="hrb"></div><section class="two">'
+    + '<div><p class="eyebrow">Consignee</p><p class="pname">' + esc(job.client_name || '—') + '</p>'
+    + '<div class="pline">' + lines([job.client_contact, job.client_address, job.client_country]) + '</div></div>'
+    + '<div><p class="eyebrow">Shipment</p><div class="pline" style="padding-top:8px">'
+    + 'Incoterm: DDP ' + esc(job.client_country) + '<br>'
+    + 'Mode: ' + esc(job.mode) + '<br>'
+    + 'Gross weight: ' + n(m.kgTotal).toFixed(1) + ' kg · ' + int(job.cartons) + ' export cartons<br>'
+    + 'Country of origin: Pakistan</div></div></section>';
+
+  h += '<div class="hr"></div><p class="eyebrow">Goods</p><table class="goods"><thead><tr>'
+    + '<th style="width:52%">Description</th><th class="r" style="width:14%">Quantity</th>'
+    + '<th class="r" style="width:16%">Unit price</th><th class="r" style="width:18%">Amount</th>'
+    + '</tr></thead><tbody><tr><td>' + esc(job.product || '—') + ' — ' + esc(job.style)
+    + '<span class="sub">' + esc(job.board) + ' ' + int(job.gsm) + ' gsm · '
+    + int(job.col_f) + 'C + ' + int(job.col_b) + 'C'
+    + (fin.length ? ' · ' + fin.map(esc).join(' · ') : '') + '</span>'
+    + '<span class="sub">HS Code ' + esc(job.hs_code) + ' — folding cartons of non-corrugated paperboard</span>'
+    + '</td><td class="n r">' + int(job.qty) + '</td><td class="n r">' + unitStr(m.ddpPc) + '</td>'
+    + '<td class="n r">' + usd(m.ddp) + '</td></tr>'
+    + '<tr><td>Tooling — cutting die and foil block'
+    + '<span class="sub">One-time. Retained in our storage; not charged on repeat orders.</span></td>'
+    + '<td class="n r">1</td><td class="n r">$0.00</td><td class="n r">$0.00</td></tr>'
+    + '<tr><td colspan="3" class="r" style="font-family:\'IBM Plex Mono\',monospace;font-size:9px;'
+    + 'letter-spacing:.15em;text-transform:uppercase;color:var(--docbrass);padding-top:16px">'
+    + 'Total invoice value · DDP</td><td class="n r" style="font-size:18px;font-weight:600;padding-top:16px">'
+    + usd(m.ddp) + '</td></tr></tbody></table>';
+
+  h += '<dl class="pay"><div class="due"><dt>Advance — due now</dt><dd>' + usd(m.ddp/2)
+    + '</dd><span class="w">50% — production starts on receipt</span></div>'
+    + '<div><dt>Balance</dt><dd>' + usd(m.ddp - m.ddp/2)
+    + '</dd><span class="w">50% — before dispatch</span></div>'
+    + '<div><dt>Payment by</dt><dd style="font-size:13px;line-height:1.5">Bank transfer<br>or Payoneer</dd>'
+    + '<span class="w">Reference ' + esc(job.pi_no || 'the PI number') + '</span></div></dl>';
+
+  h += '<div class="pgbreak"></div>'
+    + '<div class="hr"></div><p class="eyebrow">Payment instructions</p><div class="bank">'
+    + bank('Beneficiary', S('bank_benef')) + bank('Account / IBAN', S('bank_iban'))
+    + bank('Bank', S('bank_name')) + bank('SWIFT / BIC', S('bank_swift'))
+    + bank('Branch', S('bank_branch')) + bank('Payoneer', S('bank_payoneer'))
+    + '</div>';
+
+  h += '<div class="hr"></div><p class="eyebrow">Conditions</p><ol class="cond">'
+    + '<li>50% advance is required before production begins. This applies to first orders without exception.</li>'
+    + '<li>The balance falls due against dispatch photographs, before goods are handed to the carrier.</li>'
+    + '<li>Production starts only after written approval of the digital proof.</li>'
+    + '<li>Delivered quantity may vary ±5%; the invoice is adjusted to the quantity delivered.</li>'
+    + '<li>Tooling remains the property of the exporter and is stored for the buyer\'s repeat orders.</li>'
+    + '<li>Prices are quoted DDP and hold for ' + esc(job.validity) + ' from the date of this invoice.</li>'
+    + '<li>Title in the goods passes to the buyer on receipt of the final payment.</li></ol>';
+
+  h += '<div class="close"><p>This is a proforma invoice issued for payment and customs pre-clearance. '
+    + 'A commercial invoice and packing list accompany the shipment.</p>'
+    + '<div class="sign"><div class="l"></div><span>For ' + S('company') + '</span></div></div>';
+
+  return h;
+}
+function bank(l, v){ return '<div><span>' + esc(l) + '</span><span>' + (v || '—') + '</span></div>'; }
+
+/* Join only the lines that actually have content — no stray blank rows. */
+function lines(arr){
+  var out = arr.filter(function(x){ return String(x || '').trim() !== ''; }).map(esc);
+  return out.length ? out.join('<br>') : '&nbsp;';
+}
+
+function renderAll(){
+  var m = calc();
+  document.getElementById('doc-quote').innerHTML = renderQuote(m);
+  document.getElementById('doc-pi').innerHTML = renderPi(m);
+  renderInfo(m);
+  renderReadout(m);
+  return m;
+}
+
+/* ====================== BINDING ====================== */
+document.getElementById('panel').addEventListener('toggle', function(e){
+  var d = e.target;
+  if(!d || !d.classList || !d.classList.contains('sec')) return;
+  SEC_OPEN[d.getAttribute('data-sec')] = d.open;
+  try{ localStorage.setItem('press-docket-sections', JSON.stringify(SEC_OPEN)); }catch(err){}
+}, true);
+
+document.getElementById('panel').addEventListener('input', function(e){
+  var k = e.target.getAttribute('data-k');
+  if(!k) return;
+  job[k] = (e.target.type === 'number') ? n(e.target.value) : e.target.value;
+  if(k === 'client_name') fillClient(e.target.value);
+  renderAll();
+});
+document.getElementById('panel').addEventListener('change', function(e){
+  var k = e.target.getAttribute('data-k');
+  if(k && e.target.tagName === 'SELECT'){ job[k] = e.target.value; renderAll(); }
+});
+document.getElementById('panel').addEventListener('click', function(e){
+  var tg = e.target.closest('[data-tg]');
+  if(tg){
+    var k = tg.getAttribute('data-tg');
+    job[k] = job[k] === 'Yes' ? 'No' : 'Yes';
+    tg.setAttribute('aria-pressed', job[k] === 'Yes');
+    renderAll(); return;
+  }
+  var ex = e.target.closest('[data-extra]');
+  if(ex){
+    var name = ex.getAttribute('data-extra');
+    job.extras = job.extras || [];
+    var i = job.extras.indexOf(name);
+    if(i > -1) job.extras.splice(i,1); else job.extras.push(name);
+    ex.setAttribute('aria-pressed', i === -1);
+    renderAll(); return;
+  }
+  var act = e.target.closest('[data-act]');
+  if(act) ACTIONS[act.getAttribute('data-act')]();
+});
+
+function fillClient(name){
+  for(var i=0;i<DB.clients.length;i++){
+    if(DB.clients[i].name === name){
+      var c = DB.clients[i];
+      job.client_contact = c.contact || '';
+      job.client_country = c.country || '';
+      job.client_email = c.email || '';
+      job.client_address = c.address || '';
+      ['client_contact','client_country','client_email','client_address'].forEach(function(k){
+        var el = document.getElementById('i_' + k);
+        if(el) el.value = job[k];
+      });
+      return;
+    }
+  }
+}
+
+function isPlaceholderCompany(){
+  var c = String(DB.settings.company || '').trim();
+  return c === '' || c === DEFAULT_SETTINGS.company;
+}
+
+var ACTIONS = {
+  openSettings: function(){ document.getElementById('b-settings').click(); },
+  autoFlat: function(){
+    job.flat_w = 2*(n(job.len)+n(job.wid)) + n(job.flap);
+    job.flat_h = n(job.hgt) + 2*n(job.wid);
+    document.getElementById('i_flat_w').value = job.flat_w;
+    document.getElementById('i_flat_h').value = job.flat_h;
+    renderAll();
+    toast('Flat size calculated');
+  },
+  saveClient: function(){
+    if(!job.client_name){ toast('Add a client name first'); return; }
+    var c = {name:job.client_name, contact:job.client_contact, country:job.client_country,
+             email:job.client_email, address:job.client_address};
+    call('saveClient', c, function(list){
+      DB.clients = list || DB.clients;
+      var i, found = false;
+      for(i=0;i<DB.clients.length;i++) if(DB.clients[i].name === c.name) found = true;
+      if(!found) DB.clients.push(c);
+      persistDemo();
+      toast('Client saved');
+    });
+  },
+  newPi: function(){
+    if(LIVE){
+      google.script.run.withSuccessHandler(function(no){
+        job.pi_no = no;
+        document.getElementById('i_pi_no').value = no;
+        renderAll(); toast('PI number ' + no);
+      }).nextPiNumber();
+    } else {
+      var next = n(DB.settings.pi_next || 1);
+      job.pi_no = (DB.settings.pi_prefix || 'PI-') + ('000' + next).slice(-3);
+      DB.settings.pi_next = next + 1;
+      document.getElementById('i_pi_no').value = job.pi_no;
+      persistDemo(); renderAll(); toast('PI number ' + job.pi_no);
+    }
+  }
+};
+
+/* ====================== BACKEND BRIDGE ====================== */
+function call(fn, arg, ok){
+  if(LIVE){
+    google.script.run
+      .withSuccessHandler(function(r){ if(ok) ok(r); })
+      .withFailureHandler(function(err){ toast('Error: ' + err.message); })
+      [fn](arg);
+  } else {
+    if(ok) ok(null);
+  }
+}
+function persistDemo(){
+  if(LIVE) return;
+  try{ localStorage.setItem(LS, JSON.stringify(DB)); }catch(e){}
+}
+
+/* ====================== TOP BAR ====================== */
+Array.prototype.forEach.call(document.querySelectorAll('.docsel button'), function(b){
+  b.addEventListener('click', function(){
+    activeDoc = b.getAttribute('data-doc');
+    Array.prototype.forEach.call(document.querySelectorAll('.docsel button'), function(o){
+      o.setAttribute('aria-selected', o === b ? 'true' : 'false');
+    });
+    document.getElementById('doc-quote').hidden = activeDoc !== 'quote';
+    document.getElementById('doc-pi').hidden = activeDoc !== 'pi';
+  });
+});
+
+function output(bw){
+  var t = document.title;
+  var label = activeDoc === 'pi' ? (job.pi_no || 'Proforma-Invoice') : (job.quote_no || 'Quotation');
+  document.title = label + ' — ' + (job.client_name || 'client');
+  if(bw) document.documentElement.classList.add('doc-bw');
+  toast(bw ? 'Choose your printer · colour: black & white'
+           : 'Choose destination: Save as PDF');
+  setTimeout(function(){
+    window.print();
+    setTimeout(function(){
+      document.documentElement.classList.remove('doc-bw');
+      document.title = t;
+    }, 900);
+  }, 350);
+}
+document.getElementById('b-print').addEventListener('click', function(){ output(true); });
+document.getElementById('b-pdf').addEventListener('click', function(){ output(false); });
+
+document.getElementById('b-new').addEventListener('click', function(){
+  if(!confirm('Start a new quote? Anything unsaved is lost.')) return;
+  job = blankJob();
+  renderPanel(); renderAll();
+  toast('New quote');
+});
+
+document.getElementById('b-save').addEventListener('click', function(){
+  if(!job.client_name){ toast('Add a client name first'); return; }
+  var m = calc();
+  job.ups = m.ups; job.gross = m.gross;
+  job.cost_total = Math.round(m.total); job.cost_pc = Number(m.perPc.toFixed(2));
+  job.exw = Number(m.exw.toFixed(2)); job.freight = Number(m.freight.toFixed(2));
+  job.ddp = Number(m.ddp.toFixed(2)); job.ddp_pc = Number(m.ddpPc.toFixed(4));
+  job.profit = Number(m.profit.toFixed(2));
+  job.unit2 = Number(m.unit2.toFixed(4));
+  job.fx_used = rate('fx'); job.margin_used = rate('margin');
+
+  if(LIVE){
+    google.script.run.withSuccessHandler(function(r){
+      job.quote_no = r.quote_no;
+      DB.quotes = r.quotes;
+      var el = document.getElementById('i_quote_no'); if(el) el.value = r.quote_no;
+      renderAll();
+      toast(r.quote_no + (r.updated ? ' updated' : ' saved'));
+    }).withFailureHandler(function(e){ toast('Error: ' + e.message); }).saveQuote(job);
+  } else {
+    if(!job.quote_no){
+      var nx = n(DB.settings.quote_next || 1);
+      job.quote_no = (DB.settings.quote_prefix || 'QT-') + ('000' + nx).slice(-3);
+      DB.settings.quote_next = nx + 1;
+    }
+    DB.quotes = (DB.quotes || []).filter(function(q){ return q.quote_no !== job.quote_no; });
+    DB.quotes.unshift({quote_no:job.quote_no, date:job.date, status:job.status,
+      client_name:job.client_name, product:job.product, qty:job.qty, ddp:job.ddp});
+    DB.saved = DB.saved || {};
+    DB.saved[job.quote_no] = JSON.parse(JSON.stringify(job));
+    persistDemo();
+    var el2 = document.getElementById('i_quote_no'); if(el2) el2.value = job.quote_no;
+    renderAll();
+    toast(job.quote_no + ' saved');
+  }
+});
+
+/* ====================== MODALS ====================== */
+var scrim = document.getElementById('scrim'), modal = document.getElementById('modal');
+function openModal(html){ modal.innerHTML = html; scrim.hidden = false; }
+function closeModal(){ scrim.hidden = true; modal.innerHTML = ''; }
+scrim.addEventListener('click', function(e){ if(e.target === scrim) closeModal(); });
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !scrim.hidden) closeModal(); });
+
+document.getElementById('b-open').addEventListener('click', function(){
+  var rows = DB.quotes || [];
+  var body = rows.length
+    ? rows.map(function(q){
+        return '<div class="qrow" data-no="' + esc(q.quote_no) + '">'
+          + '<div class="no">' + esc(q.quote_no) + '</div>'
+          + '<div><div class="cl">' + esc(q.client_name) + '</div><div class="pr">'
+          + esc(q.product) + '</div></div>'
+          + '<div><div class="v">' + usd(q.ddp, 0) + '</div><div class="st">'
+          + esc(q.status) + ' · ' + esc(q.date) + '</div></div>'
+          + '<button class="del" data-del="' + esc(q.quote_no) + '" title="Delete">×</button></div>';
+      }).join('')
+    : '<p class="hintline">No saved quotes yet. Fill in a job and press <b>Save</b>.</p>';
+  openModal('<header><h3>Saved quotes</h3><div class="spacer"></div>'
+    + '<button class="btn" data-close>Close</button></header>'
+    + '<div class="body" id="qlist">' + body + '</div>');
+
+  document.getElementById('qlist').addEventListener('click', function(e){
+    var d = e.target.closest('[data-del]');
+    if(d){
+      e.stopPropagation();
+      if(!confirm('Delete ' + d.getAttribute('data-del') + '?')) return;
+      var no = d.getAttribute('data-del');
+      if(LIVE){
+        google.script.run.withSuccessHandler(function(list){
+          DB.quotes = list; closeModal(); toast(no + ' deleted');
+        }).deleteQuote(no);
+      } else {
+        DB.quotes = DB.quotes.filter(function(q){ return q.quote_no !== no; });
+        if(DB.saved) delete DB.saved[no];
+        persistDemo(); closeModal(); toast(no + ' deleted');
+      }
+      return;
+    }
+    var row = e.target.closest('[data-no]');
+    if(!row) return;
+    var num = row.getAttribute('data-no');
+    if(LIVE){
+      google.script.run.withSuccessHandler(function(o){
+        if(!o){ toast('Not found'); return; }
+        applyLoaded(o); closeModal(); toast(num + ' opened');
+      }).loadQuote(num);
+    } else {
+      var o = (DB.saved || {})[num];
+      if(!o){ toast('Not found'); return; }
+      applyLoaded(o); closeModal(); toast(num + ' opened');
+    }
+  });
+});
+
+function applyLoaded(o){
+  var base = blankJob();
+  Object.keys(base).forEach(function(k){
+    if(o[k] !== undefined && o[k] !== '') base[k] = o[k];
+  });
+  if(typeof base.extras === 'string') base.extras = base.extras ? base.extras.split('|') : [];
+  if(!Array.isArray(base.extras)) base.extras = [];
+  base.quote_no = o.quote_no || '';
+  base.pi_no = o.pi_no || '';
+  base.po_ref = o.po_ref || '';
+  base.notes = o.notes || '';
+  job = base;
+  renderPanel(); renderAll();
+}
+
+document.getElementById('b-rates').addEventListener('click', function(){
+  var h = '<header><h3>Rates</h3><div class="spacer"></div><button class="btn" data-close>Cancel</button>'
+        + '<button class="btn btn-go" id="r-save">Save rates</button></header><div class="body">'
+        + '<p class="hintline">These drive every quote you make from now on. '
+        + '<b>Saved quotes keep the prices they were saved with.</b></p>'
+        + '<div class="grp"><h4>Production &amp; commercial</h4><table class="rtab">';
+  RATE_META.forEach(function(r){
+    h += '<tr><td style="width:46%"><label style="font-size:12px">' + esc(r[1]) + '</label></td>'
+      + '<td style="width:22%"><input class="n" data-rate="' + r[0] + '" type="number" step="any" value="'
+      + esc(rate(r[0])) + '"></td>'
+      + '<td style="font-size:10.5px;color:var(--app-dim)">' + esc(r[2]) + '</td></tr>';
+  });
+  h += '</table></div><div class="grp"><h4>Board / paper — PKR per kg</h4><table class="rtab">'
+    + '<tr><th>Board</th><th style="width:110px">PKR/kg</th><th>Note</th></tr>';
+  DB.boards.forEach(function(b, i){
+    h += '<tr><td><input data-b="' + i + '" data-bf="name" value="' + esc(b.name) + '"></td>'
+      + '<td><input class="n" data-b="' + i + '" data-bf="pkr_per_kg" type="number" step="any" value="' + esc(b.pkr_per_kg) + '"></td>'
+      + '<td><input data-b="' + i + '" data-bf="note" value="' + esc(b.note || '') + '"></td></tr>';
+  });
+  h += '</table></div><div class="grp"><h4>Lamination / film — PKR per square inch</h4><table class="rtab">'
+    + '<tr><th>Film</th><th style="width:110px">PKR/sq.in</th><th>Note</th></tr>';
+  DB.films.forEach(function(f, i){
+    h += '<tr><td><input data-f="' + i + '" data-ff="name" value="' + esc(f.name) + '"></td>'
+      + '<td><input class="n" data-f="' + i + '" data-ff="pkr_per_sqin" type="number" step="any" value="' + esc(f.pkr_per_sqin) + '"></td>'
+      + '<td><input data-f="' + i + '" data-ff="note" value="' + esc(f.note || '') + '"></td></tr>';
+  });
+  h += '</table></div></div>';
+  openModal(h);
+
+  document.getElementById('r-save').addEventListener('click', function(){
+    var rates = {};
+    Array.prototype.forEach.call(modal.querySelectorAll('[data-rate]'), function(el){
+      rates[el.getAttribute('data-rate')] = n(el.value);
+    });
+    var boards = DB.boards.map(function(b){ return {name:b.name, pkr_per_kg:b.pkr_per_kg, note:b.note}; });
+    Array.prototype.forEach.call(modal.querySelectorAll('[data-b]'), function(el){
+      var i = Number(el.getAttribute('data-b')), f = el.getAttribute('data-bf');
+      boards[i][f] = (f === 'pkr_per_kg') ? n(el.value) : el.value;
+    });
+    var films = DB.films.map(function(f){ return {name:f.name, pkr_per_sqin:f.pkr_per_sqin, note:f.note}; });
+    Array.prototype.forEach.call(modal.querySelectorAll('[data-f]'), function(el){
+      var i = Number(el.getAttribute('data-f')), f = el.getAttribute('data-ff');
+      films[i][f] = (f === 'pkr_per_sqin') ? n(el.value) : el.value;
+    });
+
+    DB.rates = rates; DB.boards = boards; DB.films = films;
+    call('saveRates', {rates:rates, boards:boards, films:films}, function(){});
+    persistDemo();
+    closeModal(); renderPanel(); renderAll();
+    toast('Rates saved');
+  });
+});
+
+document.getElementById('b-settings').addEventListener('click', function(){
+  var groups = [
+    ['Company', [['company','Company name'],['tagline','Tagline'],['address','Address'],
+      ['email','Email'],['phone','Phone'],['whatsapp','WhatsApp'],['ntn','NTN / STRN'],
+      ['rep_name','Your name'],['rep_role','Your role']]],
+    ['Bank — shown on the proforma invoice', [['bank_benef','Beneficiary'],['bank_name','Bank'],
+      ['bank_branch','Branch'],['bank_iban','Account / IBAN'],['bank_swift','SWIFT / BIC'],
+      ['bank_payoneer','Payoneer']]],
+    ['Numbering', [['quote_prefix','Quotation prefix'],['quote_next','Next quotation number'],
+      ['pi_prefix','PI prefix'],['pi_next','Next PI number']]]
+  ];
+  var h = '<header><h3>Settings</h3><div class="spacer"></div><button class="btn" data-close>Cancel</button>'
+        + '<button class="btn btn-go" id="s-save">Save settings</button></header><div class="body">';
+  groups.forEach(function(g){
+    h += '<div class="grp"><h4>' + esc(g[0]) + '</h4><div style="display:grid;gap:11px">';
+    g[1].forEach(function(f){
+      h += '<div class="f"><label>' + esc(f[1]) + '</label><input data-set="' + f[0]
+        + '" value="' + esc(DB.settings[f[0]] !== undefined ? DB.settings[f[0]] : (DEFAULT_SETTINGS[f[0]] || '')) + '"></div>';
+    });
+    h += '</div></div>';
+  });
+  openModal(h + '</div>');
+
+  document.getElementById('s-save').addEventListener('click', function(){
+    var o = {};
+    Array.prototype.forEach.call(modal.querySelectorAll('[data-set]'), function(el){
+      o[el.getAttribute('data-set')] = el.value;
+    });
+    Object.keys(o).forEach(function(k){ DB.settings[k] = o[k]; });
+    call('saveSettings', o, function(){});
+    persistDemo();
+    closeModal(); renderAll();
+    toast('Settings saved');
+  });
+});
+
+modal.addEventListener('click', function(e){ if(e.target.closest('[data-close]')) closeModal(); });
+
+/* Gmail compose — you attach the PDF you just printed */
+document.getElementById('b-mail').addEventListener('click', function(){
+  if(!job.client_email){ toast('Add the client email first'); return; }
+  var m = calc();
+  var first = (job.client_contact || job.client_name || '').split(/[ ,]/)[0];
+  var subject = 'Quotation ' + (job.quote_no || '') + ' — ' + (job.product || 'packaging');
+  var body =
+    'Hi ' + first + ',\n\n' +
+    'Quotation attached for ' + (job.product || 'your packaging') + '.\n\n' +
+    '  Quantity    : ' + int(job.qty) + ' pcs\n' +
+    '  Unit price  : ' + unitStr(m.ddpPc) + ' per box, DDP — delivered to your door\n' +
+    '  Total       : ' + usd(m.ddp, 0) + '\n' +
+    '  Lead time   : ' + job.lead_time + ' working days after artwork approval\n\n' +
+    'Two things worth knowing before you decide:\n\n' +
+    '1. The cutting die and foil block are one-time charges. Repeat orders are cheaper because that ' +
+    'tooling is already made.\n\n' +
+    '2. At ' + int(job.qty2) + ' pcs the unit price falls to ' + unitStr(m.unit2) +
+    '. Setup costs the same either way, so the second thousand is always cheaper than the first.\n\n' +
+    'Terms are 50% with the order, 50% before it ships. I will send a digital proof for written ' +
+    'approval before anything goes on press, and photos of the finished job before dispatch.\n\n' +
+    'Happy to adjust the specification if you want to hit a particular price.\n\n' +
+    (DB.settings.rep_name || '') + '\n' + (DB.settings.company || '');
+  var url = 'https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(job.client_email)
+    + '&su=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+  window.open(url, '_blank');
+  toast('Gmail opened — attach the PDF');
+});
+
+/* ====================== TOAST ====================== */
+var toastEl = document.getElementById('toast'), toastT;
+function toast(msg){
+  toastEl.textContent = msg;
+  toastEl.hidden = false;
+  clearTimeout(toastT);
+  toastT = setTimeout(function(){ toastEl.hidden = true; }, 2600);
+}
+
+/* ====================== BOOT ====================== */
+function boot(data){
+  DB.settings = data.settings && Object.keys(data.settings).length ? data.settings : JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+  DB.rates    = data.rates && Object.keys(data.rates).length ? data.rates : JSON.parse(JSON.stringify(DEFAULT_RATES));
+  DB.boards   = (data.boards && data.boards.length) ? data.boards : JSON.parse(JSON.stringify(DEFAULT_BOARDS));
+  DB.films    = (data.films && data.films.length) ? data.films : JSON.parse(JSON.stringify(DEFAULT_FILMS));
+  DB.clients  = data.clients || [];
+  DB.quotes   = data.quotes || [];
+  DB.saved    = data.saved || {};
+
+  if(!job.client_name && DB.clients.length){
+    job.client_name = DB.clients[0].name;
+    fillClientSilent(DB.clients[0]);
+  }
+  if(!job.product) job.product = '50 ml Serum Carton';
+
+  document.getElementById('state').textContent = LIVE ? 'saving to your sheet' : 'demo — this browser only';
+  document.getElementById('state').className = 'state ' + (LIVE ? 'live' : 'demo');
+
+  renderPanel();
+  renderAll();
+}
+function fillClientSilent(c){
+  job.client_contact = c.contact || '';
+  job.client_country = c.country || '';
+  job.client_email = c.email || '';
+  job.client_address = c.address || '';
+}
+
+if(LIVE){
+  document.getElementById('state').textContent = 'loading…';
+  google.script.run
+    .withSuccessHandler(boot)
+    .withFailureHandler(function(err){
+      toast('Storage not ready — run "Set up / repair storage" in the sheet');
+      boot({});
+    })
+    .getBootstrap();
+} else {
+  var saved = {};
+  try{ saved = JSON.parse(localStorage.getItem(LS) || '{}') || {}; }catch(e){ saved = {}; }
+  boot(saved);
+}
+
+})();
+</script>
+</body>
+</html>
