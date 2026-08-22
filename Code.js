@@ -35,8 +35,24 @@ var FIELDS = [
   'validity', 'lead_time', 'transit', 'hs_code', 'cartons', 'notes',
   /* computed, stored so old quotes keep their prices when rates change */
   'ups', 'gross', 'cost_total', 'cost_pc', 'exw', 'freight', 'ddp', 'ddp_pc', 'profit',
-  'fx_used', 'margin_used'
+  'fx_used', 'margin_used',
+  /* v2 broker columns — appended at the end so old rows stay aligned */
+  'repeat', 'incoterm', 'duty_pct', 'vat_pct', 'overrides', 'vendors', 'cbm_override'
 ];
+
+/* Append any missing FIELDS columns to the Quotes header. New columns go at
+   the end, so rows written by older versions keep their alignment. */
+function migrateQuotesHeader_() {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB.QUOTES);
+  if (!sh || sh.getLastRow() < 1) return;
+  var head = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0]
+    .map(function (h) { return String(h).trim(); })
+    .filter(function (h) { return h !== ''; });
+  var missing = FIELDS.filter(function (f) { return head.indexOf(f) === -1; });
+  if (!missing.length) return;
+  sh.getRange(1, head.length + 1, 1, missing.length).setValues([missing]);
+  header_(sh, head.length + missing.length);
+}
 
 /* ============================ WEB APP ENTRY ============================ */
 
@@ -71,6 +87,7 @@ function showAppUrl() {
 
 function setupStorage() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
+  migrateQuotesHeader_();
 
   kvSheet_(ss, TAB.SET, ['key', 'value'], [
     ['company', 'Meridian Print & Pack'],
@@ -100,7 +117,7 @@ function setupStorage() {
     ['foil_block', 45], ['foil_run', 2.5],
     ['emb_block', 60], ['emb_run', 2],
     ['dc_run', 1800], ['paste', 2.5], ['pack', 1.5],
-    ['waste', 0.07], ['setup_sheets', 200], ['overhead', 0.08],
+    ['waste', 0.07], ['setup_sheets', 200],
     ['fx', 285], ['margin', 0.4],
     ['fr_dhl', 9], ['fr_air', 5.5], ['fr_sea', 180],
     ['docs', 120], ['bank_pct', 0.02]
@@ -285,6 +302,10 @@ function loadQuote(no) {
       });
       if (typeof o.extras === 'string' && o.extras) o.extras = o.extras.split('|');
       else if (!o.extras) o.extras = [];
+      ['overrides', 'vendors'].forEach(function (kk) {
+        if (typeof o[kk] === 'string' && o[kk]) { try { o[kk] = JSON.parse(o[kk]); } catch (e) { o[kk] = {}; } }
+        else if (!o[kk] || typeof o[kk] !== 'object') o[kk] = {};
+      });
       return o;
     }
   }
@@ -292,18 +313,27 @@ function loadQuote(no) {
 }
 
 function saveQuote(job) {
+  migrateQuotesHeader_();
   var sh = sh_(TAB.QUOTES);
 
   if (!job.quote_no) {
-    var set = kvRead_(TAB.SET);
-    var n = Number(set.quote_next || 1);
-    job.quote_no = String(set.quote_prefix || 'QT-') + ('000' + n).slice(-3);
-    set.quote_next = n + 1;
-    kvWrite_(TAB.SET, set);
+    /* Two open tabs must never mint the same number. */
+    var lock = LockService.getScriptLock();
+    lock.waitLock(10000);
+    try {
+      var set = kvRead_(TAB.SET);
+      var n = Number(set.quote_next || 1);
+      job.quote_no = String(set.quote_prefix || 'QT-') + ('000' + n).slice(-3);
+      set.quote_next = n + 1;
+      kvWrite_(TAB.SET, set);
+    } finally { lock.releaseLock(); }
   }
 
   var row = FIELDS.map(function (k) {
     var v = job[k];
+    if (k === 'overrides' || k === 'vendors') {
+      return (v && typeof v === 'object') ? JSON.stringify(v) : (v || '');
+    }
     if (Array.isArray(v)) return v.join('|');
     return (v === undefined || v === null) ? '' : v;
   });
@@ -319,19 +349,40 @@ function saveQuote(job) {
 }
 
 function nextPiNumber() {
-  var set = kvRead_(TAB.SET);
-  var n = Number(set.pi_next || 1);
-  var no = String(set.pi_prefix || 'PI-') + ('000' + n).slice(-3);
-  set.pi_next = n + 1;
-  kvWrite_(TAB.SET, set);
-  return no;
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    var set = kvRead_(TAB.SET);
+    var n = Number(set.pi_next || 1);
+    var no = String(set.pi_prefix || 'PI-') + ('000' + n).slice(-3);
+    set.pi_next = n + 1;
+    kvWrite_(TAB.SET, set);
+    return no;
+  } finally { lock.releaseLock(); }
 }
 
 function saveSettings(obj) {
   var cur = kvRead_(TAB.SET);
-  Object.keys(obj).forEach(function (k) { cur[k] = obj[k]; });
+  Object.keys(obj).forEach(function (k) {
+    /* Counters advance only through saveCounters — a stale settings form must
+       never rewind quote numbering. */
+    if (k === 'quote_next' || k === 'pi_next') return;
+    cur[k] = obj[k];
+  });
   kvWrite_(TAB.SET, cur);
   return cur;
+}
+
+function saveCounters(obj) {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    var cur = kvRead_(TAB.SET);
+    if (obj.quote_next !== undefined) cur.quote_next = Number(obj.quote_next) || 1;
+    if (obj.pi_next !== undefined) cur.pi_next = Number(obj.pi_next) || 1;
+    kvWrite_(TAB.SET, cur);
+    return { quote_next: cur.quote_next, pi_next: cur.pi_next };
+  } finally { lock.releaseLock(); }
 }
 
 function saveRates(payload) {
