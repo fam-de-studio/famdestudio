@@ -15,7 +15,9 @@ browser: STE and RTE both render, RTE genuinely reverses the bottom tuck onto th
 panel, invalid dimensions disable export, and the PDF button produces a real
 `application/pdf` blob.
 
-Task 9 is blocked: `gh auth login` has not been run, so the repository cannot be pushed.
+Task 9 is blocked: no GitHub credentials. The remote is configured as
+https://github.com/fam-de-studio/famdestudio.git but it returns 404 unauthenticated,
+so it is either private or not yet created. Run `gh auth login` to proceed.
 
 ---
 
@@ -1436,7 +1438,7 @@ setting in the Vercel project configuration.
 Run from `E:\QUOT`:
 
 ```bash
-gh repo create fam-studio --private --source=. --remote=origin --push
+git push -u origin master   # remote already set to fam-de-studio/famdestudio
 ```
 
 - [ ] **Step 5: Verify the push**
