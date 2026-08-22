@@ -464,7 +464,7 @@ function blankJob(){
   return {
     quote_no:'', date:todayISO(), status:'Draft', pi_no:'', po_ref:'',
     client_name:'', client_contact:'', client_country:'', client_email:'', client_address:'',
-    product:'', style:'Straight Tuck End (STE)', qty:5000,
+    product:'', style:'Straight Tuck End (STE)', qty:5000, repeat:'No',
     len:45, wid:45, hgt:120, flap:15, flat_w:195, flat_h:210,
     board:'SBS / Ivory Board', gsm:350, psw:635, psh:965, trim_w:10, trim_h:17,
     col_f:5, col_b:0,
@@ -540,16 +540,19 @@ function costForQty(job, ctx, qty){
   var area = (n_(job.psw)/25.4) * (n_(job.psh)/25.4);
   var plates = n_(job.col_f) + n_(job.col_b);
 
+  /* Repeat orders reuse existing tooling: plates, die, blocks, setups and the
+     proof are already made and must not be charged again. Running charges stay. */
+  var rep = job.repeat === 'Yes';
   var c = {
     board: gross * kgSheet * boardRate(ctx, job.board),
-    plates: plates * rateOf(ctx,'plate',1200),
+    plates: rep ? 0 : plates * rateOf(ctx,'plate',1200),
     print: gross/1000 * rateOf(ctx,'print',900) * plates,
-    proof: rateOf(ctx,'proof',3500),
+    proof: rep ? 0 : rateOf(ctx,'proof',3500),
     lam:   gross * area * filmRate(ctx, job.lam),
-    uv:    job.uv === 'Yes' ? rateOf(ctx,'uv_setup',3000) + gross * rateOf(ctx,'uv_run',3.5) : 0,
-    foil:  job.foil === 'Yes' ? n_(job.foil_area) * rateOf(ctx,'foil_block',45) + gross * rateOf(ctx,'foil_run',2.5) : 0,
-    emb:   job.emb === 'Yes' ? n_(job.emb_area) * rateOf(ctx,'emb_block',60) + gross * rateOf(ctx,'emb_run',2) : 0,
-    die:   n_(job.die_cost),
+    uv:    job.uv === 'Yes' ? (rep ? 0 : rateOf(ctx,'uv_setup',3000)) + gross * rateOf(ctx,'uv_run',3.5) : 0,
+    foil:  job.foil === 'Yes' ? (rep ? 0 : n_(job.foil_area) * rateOf(ctx,'foil_block',45)) + gross * rateOf(ctx,'foil_run',2.5) : 0,
+    emb:   job.emb === 'Yes' ? (rep ? 0 : n_(job.emb_area) * rateOf(ctx,'emb_block',60)) + gross * rateOf(ctx,'emb_run',2) : 0,
+    die:   rep ? 0 : n_(job.die_cost),
     dc:    gross/1000 * rateOf(ctx,'dc_run',1800),
     paste: qty * rateOf(ctx,'paste',2.5),
     pack:  qty * rateOf(ctx,'pack',1.5),

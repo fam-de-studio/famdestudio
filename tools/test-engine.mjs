@@ -57,5 +57,15 @@ eq('override total consistent', mOv.direct,
 const jOv0 = { ...JOB, overrides: { proof: 0 } }
 eq('zero is a valid override', computeCost(jOv0, CTX).parts.proof, 0, 0.001)
 
+// ── Task 3: repeat order ──
+const jRep = { ...JOB, repeat: 'Yes' }
+const mRep = computeCost(jRep, CTX)
+eq('repeat: plates zero', mRep.parts.plates, 0, 0.001)
+eq('repeat: die zero', mRep.parts.die, 0, 0.001)
+eq('repeat: proof zero', mRep.parts.proof, 0, 0.001)
+eq('repeat: foil is run-only', mRep.parts.foil, mRep.gross * 2.5, 0.01)
+eq('repeat: uv is run-only', mRep.parts.uv, mRep.gross * 3.5, 0.01)
+ok('repeat is cheaper', mRep.direct < computeCost(JOB, CTX).direct)
+
 if (failures) { console.error(`\n${failures} failure(s)`); process.exit(1) }
 console.log('engine tests: all passed')
