@@ -1,0 +1,173 @@
+@import "tailwindcss";
+
+:root {
+  --void: #0B0A09;
+  --ink-2: #1B1917;
+  --cream: #F5F0E6;
+  --dim: #9A9186;
+  --dimmer: #6B645C;
+  --brass: #C9A227;
+  --hair: rgba(201, 162, 39, .18);
+  --hair-2: rgba(245, 240, 230, .08);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--void);
+  color: var(--cream);
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.font-display { font-family: var(--font-display), Georgia, serif; }
+.font-mono2 { font-family: var(--font-mono), monospace; }
+
+/* ── foil: a gold gradient that sweeps, like light moving across stamped foil ── */
+.foil {
+  background: linear-gradient(100deg,
+    #8A6820 0%, #C9A227 8%, #F6E4A8 14%, #FFFFFF 17%, #F6E4A8 20%, #C9A227 28%,
+    #8A6820 40%, #C9A227 48%, #FFF7D6 54%, #FFFFFF 57%, #F6E4A8 60%, #C9A227 68%,
+    #8A6820 82%, #C9A227 92%, #8A6820 100%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: sweep 3.8s linear infinite;
+  filter: drop-shadow(0 0 14px rgba(201, 162, 39, .35));
+}
+@keyframes sweep { to { background-position: -250% 0; } }
+
+/* ── holographic: the rainbow shift of holo foil ── */
+.holo {
+  background: linear-gradient(115deg, #F58BC4, #8F86F0, #5FD3A6, #F2C14E, #F58BC4);
+  background-size: 400% 400%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: holo 9s ease infinite;
+}
+@keyframes holo {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.eyebrow {
+  font-family: var(--font-mono), monospace;
+  font-size: 10.5px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--brass);
+}
+
+.rule {
+  border: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201, 162, 39, .35), transparent);
+}
+
+/* ── scroll reveal — progressive enhancement: content visible unless JS arms it ── */
+.js .rise {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity .9s cubic-bezier(.2, .7, .3, 1), transform .9s cubic-bezier(.2, .7, .3, 1);
+}
+.js .rise.in { opacity: 1; transform: none; }
+
+/* ── sparkles ── */
+.sparks { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
+.spark {
+  position: absolute; width: 4px; height: 4px; border-radius: 50%;
+  background: #FFF7D6; opacity: 0;
+  box-shadow: 0 0 8px 2px rgba(246, 228, 168, .55);
+  animation: twinkle 5s ease-in-out infinite;
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0; transform: scale(.3); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+/* ── glow pool behind the hero ── */
+.pool {
+  position: absolute; left: 50%; top: -120px; width: 820px; height: 520px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(201, 162, 39, .16), transparent 66%);
+  filter: blur(20px); pointer-events: none; z-index: 0;
+}
+
+/* ── gold CTA with a periodic shine sweep ── */
+.cta {
+  position: relative; overflow: hidden;
+  display: inline-flex; align-items: center; gap: 11px;
+  background: linear-gradient(100deg, #8A6820, #C9A227 40%, #E8CB6A 52%, #C9A227 64%, #8A6820);
+  background-size: 220% 100%;
+  color: #17130A; padding: 16px 30px; border-radius: 3px; text-decoration: none;
+  font-size: 15px; font-weight: 500; letter-spacing: .01em; border: 0; cursor: pointer;
+  transition: background-position .7s ease, transform .3s ease, box-shadow .4s ease;
+  box-shadow: 0 0 22px rgba(201, 162, 39, .22);
+}
+.cta::after {
+  content: ""; position: absolute; top: 0; left: -60%; width: 45%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .55), transparent);
+  transform: skewX(-18deg);
+  animation: ctashine 3.2s ease-in-out infinite;
+}
+@keyframes ctashine {
+  0%, 55% { left: -60%; }
+  85%, 100% { left: 130%; }
+}
+.cta:hover {
+  background-position: 100% 0; transform: translateY(-2px);
+  box-shadow: 0 10px 38px rgba(201, 162, 39, .42);
+}
+
+/* ── drip-off card: matte surface, gloss sweeps across on hover ── */
+.card {
+  position: relative; overflow: hidden; padding: 30px 26px; border-radius: 4px;
+  background: var(--ink-2); border: 1px solid var(--hair-2);
+  transition: border-color .45s ease, transform .45s ease;
+}
+.card::after {
+  content: ""; position: absolute; top: 0; left: -70%; width: 55%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 253, 243, .13), transparent);
+  transform: skewX(-18deg); transition: left .85s cubic-bezier(.3, .7, .3, 1);
+}
+.card:hover { border-color: rgba(201, 162, 39, .42); transform: translateY(-4px); }
+.card:hover::after { left: 130%; }
+
+.note {
+  font-size: 13.5px; line-height: 1.6; color: var(--dimmer);
+  border-left: 1px solid rgba(201, 162, 39, .4); padding-left: 14px; margin-top: 13px;
+}
+
+/* ── form controls ── */
+.field {
+  width: 100%; padding: 13px 15px; border: 1px solid var(--hair-2);
+  background: rgba(245, 240, 230, .03); border-radius: 3px;
+  font-family: inherit; font-size: 15px; color: var(--cream);
+  transition: border-color .3s ease, background .3s ease;
+}
+.field:focus {
+  outline: none; border-color: rgba(201, 162, 39, .55);
+  background: rgba(245, 240, 230, .05);
+}
+.field::placeholder { color: #55504A; }
+
+.chip {
+  border: 1px solid var(--hair-2); border-radius: 3px; padding: 9px 16px;
+  font-size: 13.5px; color: var(--dim); cursor: pointer; background: transparent;
+  transition: all .3s ease;
+}
+.chip:hover { border-color: rgba(201, 162, 39, .5); color: var(--cream); }
+.chip[aria-pressed="true"] {
+  border-color: var(--brass); color: var(--cream);
+  background: rgba(201, 162, 39, .12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::after { animation: none !important; transition: none !important; }
+  .js .rise { opacity: 1; transform: none; }
+}
