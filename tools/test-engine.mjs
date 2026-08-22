@@ -80,5 +80,19 @@ eq('cbm override wins', computeCost(jSeaOv, CTX).freight, 2.5 * 180, 0.01)
 const m4 = computeCost(JOB, CTX)
 eq('bank fee on full invoice', m4.bankFee, 0.02 * (m4.exw + m4.freight + 120), 0.01)
 
+// ── Task 5: DAP / DDP ──
+const mDap = computeCost({ ...JOB, incoterm: 'DAP' }, CTX)
+eq('DAP total = exw+freight+docs+bank', mDap.ddp,
+   mDap.exw + mDap.freight + 120 + mDap.bankFee, 0.01)
+eq('DAP duty is zero', mDap.duty, 0, 0.001)
+
+const jDdp = { ...JOB, incoterm: 'DDP', duty_pct: 0.03, vat_pct: 0.20 }
+const mDdp = computeCost(jDdp, CTX)
+eq('duty = 3% of (exw+freight)', mDdp.duty, 0.03 * (mDdp.exw + mDdp.freight), 0.01)
+eq('vat = 20% of (exw+freight+duty)', mDdp.vat,
+   0.20 * (mDdp.exw + mDdp.freight + mDdp.duty), 0.01)
+eq('DDP total = DAP + duty + vat', mDdp.ddp, mDdp.dap + mDdp.duty + mDdp.vat, 0.01)
+ok('default incoterm is DAP', Math.abs(computeCost(JOB, CTX).duty) < 0.001)
+
 if (failures) { console.error(`\n${failures} failure(s)`); process.exit(1) }
 console.log('engine tests: all passed')

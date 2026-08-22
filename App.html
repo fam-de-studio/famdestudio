@@ -472,6 +472,7 @@ function blankJob(){
     other_pkr:0, extras:[],
     die_cost:8000, local_tr:4000,
     pack_pct:0.08, cbm:1.8, cbm_override:'', mode:'Air Freight',
+    incoterm:'DAP', duty_pct:0, vat_pct:0,
     qty2:10000, unit2:0, unit2_auto:'Yes',
     validity:'15 days', lead_time:'12–15', transit:'6–9',
     hs_code:'4819.2000', cartons:6, notes:'',
@@ -532,7 +533,7 @@ function costForQty(job, ctx, qty){
   var imp = imposition(job), ups = imp.ups;
   if(ups <= 0 || qty <= 0){
     return {ups:0, gross:0, parts:{}, direct:0, total:0, perPc:0, exw:0, exwPc:0,
-            freight:0, bankFee:0, cbmAuto:0, ddp:0, ddpPc:0, profit:0, kgTotal:0, boxKg:0};
+            freight:0, bankFee:0, cbmAuto:0, dap:0, duty:0, vat:0, ddp:0, ddpPc:0, profit:0, kgTotal:0, boxKg:0};
   }
   var net = Math.ceil(qty/ups);
   var gross = Math.ceil(net * (1 + rateOf(ctx,'waste',0.07))) + rateOf(ctx,'setup_sheets',200);
@@ -587,12 +588,23 @@ function costForQty(job, ctx, qty){
   var docs = rateOf(ctx,'docs',120);
   /* The bank charges on the whole invoice, not just the goods. */
   var bankFee = (exw + freight + docs) * rateOf(ctx,'bank_pct',0.02);
-  var ddp = exw + freight + docs + bankFee;
+
+  /* DAP: delivered, duties unpaid — the buyer's courier collects any duty/VAT.
+     DDP: we price destination duty (on CIF) and VAT (on CIF + duty) into the
+     quote, so "no further charges on arrival" is finally true. */
+  var dap = exw + freight + docs + bankFee;
+  var duty = 0, vat = 0;
+  if(job.incoterm === 'DDP'){
+    duty = n_(job.duty_pct) * (exw + freight);
+    vat  = n_(job.vat_pct) * (exw + freight + duty);
+  }
+  var landed = dap + duty + vat;
 
   return {
     ups:ups, gross:gross, parts:c, direct:direct, total:total, perPc:total/qty,
     exw:exw, exwPc:exw/qty, freight:freight, bankFee:bankFee, cbmAuto:cbmAuto,
-    ddp:ddp, ddpPc:ddp/qty, profit:fx > 0 ? exw - total/fx : 0,
+    dap:dap, duty:duty, vat:vat,
+    ddp:landed, ddpPc:landed/qty, profit:fx > 0 ? exw - total/fx : 0,
     kgTotal:grossKg, boxKg:boxKg
   };
 }
