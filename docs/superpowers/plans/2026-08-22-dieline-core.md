@@ -6,7 +6,18 @@
 
 **Architecture:** A pure-TypeScript geometry core (`lib/geometry/`) that imports neither React nor Three, so it unit-tests in Node. It emits a single interchange type, `Dieline`. A separate export layer turns `Dieline` into SVG and PDF. A thin Next.js UI drives the core and renders the flat dieline as inline SVG. Plan B adds 3D on top of the same `Dieline`.
 
-**Tech Stack:** Next.js 15 (App Router) · TypeScript · Tailwind · Vitest (Node environment) · `svg2pdf.js` + `jspdf` for PDF
+**Tech Stack:** Next.js 16 (App Router) · TypeScript · Tailwind · Vitest (Node environment) · `svg2pdf.js` + `jspdf` for PDF
+
+## Status
+
+Tasks 1-8 complete on branch `feat/dieline-core`. 31 tests pass. Verified in a running
+browser: STE and RTE both render, RTE genuinely reverses the bottom tuck onto the front
+panel, invalid dimensions disable export, and the PDF button produces a real
+`application/pdf` blob.
+
+Task 9 is blocked: `gh auth login` has not been run, so the repository cannot be pushed.
+
+---
 
 ## Global Constraints
 

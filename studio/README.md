@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dieline & 3D Visual Studio
 
-## Getting Started
+Generates production-ready folding-carton dielines and, from Plan B onward, 3D mockups
+with realistic decorative finishes — foil, drip-off, soft-touch, metalized.
 
-First, run the development server:
+## Run
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+    npm install
+    npm run dev      # http://localhost:3000
+    npm test         # geometry unit tests, Node environment
+    npm run build    # production build
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Layout
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+    lib/geometry/    pure TypeScript core — no React, no Three, tests in Node
+    lib/export/      Dieline → SVG / PDF
+    components/      studio UI
+    app/             Next.js App Router
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`lib/geometry/constants.ts` holds every trade allowance. Change dieline behaviour there,
+never inline.
 
-## Learn More
+> **The trade constants are unconfirmed defaults.** Glue flap width, tuck and dust
+> clearances, chamfers, and the caliper table all need verification by the shop before
+> any dieline is sent to a die maker.
 
-To learn more about Next.js, take a look at the following resources:
+## What works today
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Straight Tuck End and Reverse Tuck End geometry, with the tuck hosts genuinely reversed
+- Live validation with actionable messages (bad dimensions disable export)
+- Layered SVG export — separate `cut`, `crease`, `bleed` groups plus a grain marker,
+  in the trade colour convention (cut magenta, crease dashed blue, bleed cyan)
+- Vector PDF export at true millimetre scale
+- A fold-closure test proving each dieline folds into the box that was requested
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deployment
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Vercel builds from the `studio` directory of this repository. Set
+**Settings → General → Root Directory** to `studio` — the repository root has no
+`package.json` and the build fails without it.
