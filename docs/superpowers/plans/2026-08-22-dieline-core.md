@@ -1425,7 +1425,7 @@ setting in the Vercel project configuration.
 Run from `E:\QUOT`:
 
 ```bash
-gh repo create quot-studio --private --source=. --remote=origin --push
+gh repo create fam-studio --private --source=. --remote=origin --push
 ```
 
 - [ ] **Step 5: Verify the push**
