@@ -15,9 +15,20 @@ browser: STE and RTE both render, RTE genuinely reverses the bottom tuck onto th
 panel, invalid dimensions disable export, and the PDF button produces a real
 `application/pdf` blob.
 
-Task 9 is blocked: no GitHub credentials. The remote is configured as
-https://github.com/fam-de-studio/famdestudio.git but it returns 404 unauthenticated,
-so it is either private or not yet created. Run `gh auth login` to proceed.
+Task 9 done. Pushed to https://github.com/fam-de-studio/famdestudio (private).
+
+Three deployment traps were hit and cleared, all recorded here because they will
+recur on the next project:
+
+1. **Blocked deployment.** Vercel's Hobby plan refuses a deployment whose commit
+   author is not a contributor. This machine's global git identity belongs to a
+   different GitHub account, so the repo now sets a local identity:
+   `fam-de-studio <319869721+fam-de-studio@users.noreply.github.com>`.
+2. **No Next.js version detected.** Root Directory must be `studio`; the repo
+   root has no package.json.
+3. **No production deployment.** Vercel's production branch is `main`, but
+   `git init` on Windows created `master`, so every push produced a preview
+   only. The branch was renamed to `main` and `master` deleted.
 
 ---
 
@@ -1438,7 +1449,7 @@ setting in the Vercel project configuration.
 Run from `E:\QUOT`:
 
 ```bash
-git push -u origin master   # remote already set to fam-de-studio/famdestudio
+git push -u origin main   # remote: fam-de-studio/famdestudio
 ```
 
 - [ ] **Step 5: Verify the push**

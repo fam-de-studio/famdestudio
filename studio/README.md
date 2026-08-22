@@ -35,6 +35,14 @@ never inline.
 
 ## Deployment
 
-Vercel builds from the `studio` directory of this repository. Set
-**Settings → General → Root Directory** to `studio` — the repository root has no
-`package.json` and the build fails without it.
+Vercel builds from the `studio` directory of this repository.
+
+Three settings must hold or the deploy fails silently:
+
+- **Settings → General → Root Directory** = `studio`. The repository root has no
+  `package.json`; without this the build reports "No Next.js version detected".
+- **Production branch** = `main`. Pushes to any other branch produce preview
+  deployments only, and the production domain stays empty.
+- **Commit author** must be a contributor on the Vercel project. The Hobby plan
+  blocks deployments otherwise, so this repository carries a local git identity
+  (`git config user.email`) rather than relying on the machine-wide one.
