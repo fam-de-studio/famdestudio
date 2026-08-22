@@ -30,7 +30,7 @@ const JOB = {
 
 let failures = 0
 function eq(label, got, want, tol = 0.01) {
-  if (Math.abs(got - want) > tol) { console.error(`FAIL ${label}: got ${got}, want ${want}`); failures++ }
+  if (!(Math.abs(got - want) <= tol)) { console.error(`FAIL ${label}: got ${got}, want ${want}`); failures++ }
 }
 function ok(label, cond) { if (!cond) { console.error(`FAIL ${label}`); failures++ } }
 
@@ -66,6 +66,19 @@ eq('repeat: proof zero', mRep.parts.proof, 0, 0.001)
 eq('repeat: foil is run-only', mRep.parts.foil, mRep.gross * 2.5, 0.01)
 eq('repeat: uv is run-only', mRep.parts.uv, mRep.gross * 3.5, 0.01)
 ok('repeat is cheaper', mRep.direct < computeCost(JOB, CTX).direct)
+
+// ── Task 4: sea CBM scales with qty; bank fee on full invoice ──
+const jSea = { ...JOB, mode: 'Sea LCL' }
+const sea5 = computeCost(jSea, CTX)
+const sea50 = costForQty(jSea, CTX, 50000)
+ok('sea freight grows with qty', sea50.freight > sea5.freight * 5)
+const vol1 = (195/1000) * (210/1000) * (350/800000)
+eq('cbmAuto at 5000', sea5.cbmAuto, vol1 * 5000 * 1.08, 0.001)
+const jSeaOv = { ...jSea, cbm_override: 2.5 }
+eq('cbm override wins', computeCost(jSeaOv, CTX).freight, 2.5 * 180, 0.01)
+
+const m4 = computeCost(JOB, CTX)
+eq('bank fee on full invoice', m4.bankFee, 0.02 * (m4.exw + m4.freight + 120), 0.01)
 
 if (failures) { console.error(`\n${failures} failure(s)`); process.exit(1) }
 console.log('engine tests: all passed')
