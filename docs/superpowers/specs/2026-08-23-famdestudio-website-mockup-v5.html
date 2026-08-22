@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fam de Studio — direction mockup v4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500;6..96,600&family=Archivo:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --void:#0B0A09;
+    --ink:#121110;
+    --ink-2:#1B1917;
+    --cream:#F5F0E6;
+    --dim:#9A9186;
+    --dimmer:#6B645C;
+    --brass:#C9A227;
+    --hair:rgba(201,162,39,.18);
+    --hair-2:rgba(245,240,230,.08);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--void);color:var(--cream);
+    font-family:Archivo,system-ui,sans-serif;font-size:16px;line-height:1.65;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+  .wrap{max-width:1020px;margin:0 auto;padding:0 40px;position:relative;z-index:2}
+
+  /* ── foil: a gold gradient that sweeps, like light moving across stamped foil.
+       Two bright bands per cycle, a hotter white flash, and a faster pass. ── */
+  .foil{
+    background:linear-gradient(100deg,
+      #8A6820 0%,#C9A227 8%,#F6E4A8 14%,#FFFFFF 17%,#F6E4A8 20%,#C9A227 28%,
+      #8A6820 40%,#C9A227 48%,#FFF7D6 54%,#FFFFFF 57%,#F6E4A8 60%,#C9A227 68%,
+      #8A6820 82%,#C9A227 92%,#8A6820 100%);
+    background-size:250% 100%;
+    -webkit-background-clip:text;background-clip:text;
+    color:transparent;
+    animation:sweep 3.8s linear infinite;
+    filter:drop-shadow(0 0 14px rgba(201,162,39,.35));
+  }
+  @keyframes sweep{to{background-position:-250% 0}}
+
+  /* ── holographic: the rainbow shift of holo foil ── */
+  .holo{
+    background:linear-gradient(115deg,#F58BC4,#8F86F0,#5FD3A6,#F2C14E,#F58BC4);
+    background-size:400% 400%;
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    animation:holo 9s ease infinite;
+  }
+  @keyframes holo{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+
+  h1,h2,h3{font-family:'Bodoni Moda',Georgia,serif;font-weight:400;letter-spacing:-.015em;margin:0}
+  h1{font-size:clamp(42px,7vw,80px);line-height:1.02;max-width:13ch}
+  h2{font-size:clamp(28px,3.8vw,42px);line-height:1.12;max-width:20ch}
+  h3{font-size:22px;line-height:1.28}
+  p{margin:0}
+  .lede{font-size:18px;color:var(--dim);max-width:50ch}
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--brass);margin:0 0 26px;
+  }
+  section{padding:104px 0;position:relative}
+  .rule{border:0;border-top:1px solid var(--hair);margin:0;
+    background:linear-gradient(90deg,transparent,rgba(201,162,39,.35),transparent);height:1px;border-top:0}
+
+  /* ── scroll reveal — progressive enhancement.
+       Content is visible by default. Only once JS confirms it is running does
+       .rise start hidden, so a blocked script can never blank the page. ── */
+  .js .rise{opacity:0;transform:translateY(26px);
+    transition:opacity .9s cubic-bezier(.2,.7,.3,1),transform .9s cubic-bezier(.2,.7,.3,1)}
+  .js .rise.in{opacity:1;transform:none}
+
+  /* ── sparkles — static markup, CSS animation, no JS needed ── */
+  .sparks{position:fixed;inset:0;pointer-events:none;z-index:1}
+  .spark{position:absolute;width:4px;height:4px;border-radius:50%;
+    background:#FFF7D6;opacity:0;
+    box-shadow:0 0 8px 2px rgba(246,228,168,.55);
+    animation:twinkle 5s ease-in-out infinite}
+  @keyframes twinkle{
+    0%,100%{opacity:0;transform:scale(.3)}
+    50%{opacity:1;transform:scale(1.15)}
+  }
+
+  /* ── glow pool behind the hero ── */
+  .pool{position:absolute;left:50%;top:-120px;width:820px;height:520px;transform:translateX(-50%);
+    background:radial-gradient(ellipse at center,rgba(201,162,39,.16),transparent 66%);
+    filter:blur(20px);pointer-events:none;z-index:0}
+
+  .cta{
+    position:relative;overflow:hidden;
+    display:inline-flex;align-items:center;gap:11px;
+    background:linear-gradient(100deg,#8A6820,#C9A227 40%,#E8CB6A 52%,#C9A227 64%,#8A6820);
+    background-size:220% 100%;
+    color:#17130A;padding:16px 30px;border-radius:3px;text-decoration:none;
+    font-size:15px;font-weight:500;letter-spacing:.01em;
+    transition:background-position .7s ease,transform .3s ease,box-shadow .4s ease;
+    box-shadow:0 0 22px rgba(201,162,39,.22);
+  }
+  .cta::after{
+    content:"";position:absolute;top:0;left:-60%;width:45%;height:100%;
+    background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);
+    transform:skewX(-18deg);
+    animation:ctashine 3.2s ease-in-out infinite;
+  }
+  @keyframes ctashine{
+    0%,55%{left:-60%}
+    85%,100%{left:130%}
+  }
+  .cta:hover{background-position:100% 0;transform:translateY(-2px);box-shadow:0 10px 38px rgba(201,162,39,.42)}
+
+  /* ── drip-off card: matte surface, gloss sweeps across on hover ── */
+  .card{
+    position:relative;overflow:hidden;padding:30px 26px;border-radius:4px;
+    background:var(--ink-2);border:1px solid var(--hair-2);
+    transition:border-color .45s ease,transform .45s ease;
+  }
+  .card::after{
+    content:"";position:absolute;top:0;left:-70%;width:55%;height:100%;
+    background:linear-gradient(100deg,transparent,rgba(255,253,243,.13),transparent);
+    transform:skewX(-18deg);transition:left .85s cubic-bezier(.3,.7,.3,1);
+  }
+  .card:hover{border-color:rgba(201,162,39,.42);transform:translateY(-4px)}
+  .card:hover::after{left:130%}
+
+  .note{font-size:13.5px;line-height:1.6;color:var(--dimmer);
+    border-left:1px solid rgba(201,162,39,.4);padding-left:14px;margin-top:13px}
+  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:22px}
+  .work{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:26px}
+  .shot{
+    aspect-ratio:4/3;border-radius:3px;position:relative;overflow:hidden;
+    background:
+      radial-gradient(ellipse at 32% 28%,rgba(201,162,39,.22),transparent 58%),
+      linear-gradient(150deg,#191715,#0E0D0C);
+    border:1px solid var(--hair-2);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.14em;
+    text-transform:uppercase;color:#4E4841;
+  }
+  .cap{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.15em;
+    text-transform:uppercase;color:var(--brass);margin:16px 0 7px}
+  .stat{font-family:'Bodoni Moda',Georgia,serif;font-size:64px;line-height:1}
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:30px;counter-reset:s}
+  .step{counter-increment:s;padding-top:20px;border-top:1px solid var(--hair)}
+  .step::before{content:counter(s,decimal-leading-zero);display:block;
+    font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;color:var(--brass);margin-bottom:13px}
+
+  label{display:block;font-size:13.5px;color:var(--dim);margin-bottom:8px}
+  input,select,textarea{width:100%;padding:13px 15px;border:1px solid var(--hair-2);
+    background:rgba(245,240,230,.03);border-radius:3px;font-family:inherit;font-size:15px;
+    color:var(--cream);transition:border-color .3s ease,background .3s ease}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:rgba(201,162,39,.55);background:rgba(245,240,230,.05)}
+  input::placeholder,textarea::placeholder{color:#55504A}
+  .f{margin-bottom:20px}
+  .f2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .chips{display:flex;flex-wrap:wrap;gap:10px}
+  .chip{border:1px solid var(--hair-2);border-radius:3px;padding:9px 16px;font-size:13.5px;
+    color:var(--dim);cursor:pointer;transition:all .3s ease}
+  .chip:hover{border-color:rgba(201,162,39,.5);color:var(--cream)}
+  header{display:flex;align-items:center;justify-content:space-between;padding:26px 0}
+  footer{padding:48px 0 70px;font-size:13.5px;color:var(--dimmer)}
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+    .rise{opacity:1;transform:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="sparks" aria-hidden="true">
+  <i class="spark" style="left:7%;top:12%;animation-delay:.3s;animation-duration:4.2s"></i>
+  <i class="spark" style="left:18%;top:64%;animation-delay:2.1s;animation-duration:5.6s"></i>
+  <i class="spark" style="left:26%;top:31%;animation-delay:1.2s;animation-duration:3.9s"></i>
+  <i class="spark" style="left:33%;top:82%;animation-delay:3.4s;animation-duration:6.1s"></i>
+  <i class="spark" style="left:41%;top:18%;animation-delay:.8s;animation-duration:4.8s"></i>
+  <i class="spark" style="left:47%;top:55%;animation-delay:2.7s;animation-duration:5.2s"></i>
+  <i class="spark" style="left:54%;top:9%;animation-delay:1.6s;animation-duration:4.4s"></i>
+  <i class="spark" style="left:61%;top:73%;animation-delay:.5s;animation-duration:5.9s"></i>
+  <i class="spark" style="left:68%;top:38%;animation-delay:3.1s;animation-duration:4.1s"></i>
+  <i class="spark" style="left:74%;top:88%;animation-delay:1.9s;animation-duration:5.4s"></i>
+  <i class="spark" style="left:81%;top:22%;animation-delay:2.4s;animation-duration:4.6s"></i>
+  <i class="spark" style="left:88%;top:59%;animation-delay:.9s;animation-duration:6.3s"></i>
+  <i class="spark" style="left:93%;top:35%;animation-delay:3.7s;animation-duration:4.9s"></i>
+  <i class="spark" style="left:12%;top:44%;animation-delay:1.4s;animation-duration:5.1s"></i>
+  <i class="spark" style="left:58%;top:92%;animation-delay:2.9s;animation-duration:4.3s"></i>
+  <i class="spark" style="left:37%;top:5%;animation-delay:.6s;animation-duration:5.7s"></i>
+  <i class="spark" style="left:84%;top:78%;animation-delay:2.2s;animation-duration:4.5s"></i>
+  <i class="spark" style="left:22%;top:96%;animation-delay:1.1s;animation-duration:5.3s"></i>
+</div>
+
+<div class="wrap">
+  <header>
+    <span style="font-family:'Bodoni Moda',Georgia,serif;font-size:20px" class="foil">Fam de Studio</span>
+    <span class="eyebrow" style="margin:0">Lahore, Pakistan</span>
+  </header>
+</div>
+<hr class="rule">
+
+<div style="position:relative"><div class="pool"></div>
+<div class="wrap">
+  <section style="padding-top:110px">
+    <p class="eyebrow rise">Hot foil · Drip-off · Metalized · <span class="holo">Holographic</span></p>
+    <h1 class="rise">The fine work most printers <span class="foil">won't attempt.</span></h1>
+    <p class="lede rise" style="margin:30px 0 38px">
+      Decorative packaging for small premium brands — designed and produced in Pakistan.
+      Twenty-eight years at the press, from 200 pieces, delivered to your door.
+    </p>
+    <div class="rise">
+      <a class="cta" href="#enquire">Send your logo — get a free 3D visual</a>
+      <p style="font-size:13.5px;color:var(--dimmer);margin-top:16px">No cost. No obligation.</p>
+    </div>
+  </section>
+</div></div>
+<hr class="rule">
+
+<div class="wrap">
+  <section>
+    <p class="eyebrow rise">Selected work</p>
+    <div class="work">
+      <div class="rise">
+        <div class="shot">your image here</div>
+        <p class="cap">Hot foil · Soft touch</p>
+        <p style="font-size:14.5px;color:var(--dim)">Serum carton, 350gsm ivory. Gold foil logo over velvet lamination.</p>
+      </div>
+      <div class="rise" style="transition-delay:.12s">
+        <div class="shot">your image here</div>
+        <p class="cap">Drip-off · Emboss</p>
+        <p style="font-size:14.5px;color:var(--dim)">Chocolate sleeve. Matte field with gloss pattern, blind embossed mark.</p>
+      </div>
+      <div class="rise" style="transition-delay:.24s">
+        <div class="shot">your image here</div>
+        <p class="cap">Metalized board</p>
+        <p style="font-size:14.5px;color:var(--dim)">Candle box printed over mirror stock. Four colours, no white base.</p>
+      </div>
+    </div>
+  </section>
+</div>
+<hr class="rule">
+
+<div class="wrap">
+  <section>
+    <p class="eyebrow rise">Who this is for</p>
+    <h2 class="rise">Brands too small for a Chinese factory, <span class="foil">too particular</span> for a local printer.</h2>
+    <p class="lede rise" style="margin-top:24px">
+      Skincare, chocolate, candles, supplements, specialty coffee. Whether it's 200 boxes for a
+      launch or 20,000 for a season — if the box has to feel like the product inside, that's the work I do.
+    </p>
+  </section>
+</div>
+<hr class="rule">
+
+<div class="wrap">
+  <section>
+    <p class="eyebrow rise">What I actually do</p>
+    <p style="font-size:13px;color:var(--dimmer);margin:-14px 0 26px;font-family:'IBM Plex Mono',monospace;letter-spacing:.04em">Hover a card — that sheen is what drip-off does on paper.</p>
+    <div class="grid3">
+      <div class="card rise">
+        <h3 class="foil">Hot foil</h3>
+        <p style="font-size:14.5px;color:var(--dim);margin-top:10px">Gold, silver, rose, holographic. Blocks are a one-time charge — repeat orders never pay twice.</p>
+        <p class="note">Serif text under 6pt fills in. I'll tell you before it's a problem, not after.</p>
+      </div>
+      <div class="card rise" style="transition-delay:.08s">
+        <h3 class="foil">Drip-off</h3>
+        <p style="font-size:14.5px;color:var(--dim);margin-top:10px">Matte field, gloss spots, in one pass. The cheapest way to look expensive.</p>
+        <p class="note">Needs a matte BOPP base. On gloss film the contrast disappears.</p>
+      </div>
+      <div class="card rise" style="transition-delay:.16s">
+        <h3 class="foil">Metalized board</h3>
+        <p style="font-size:14.5px;color:var(--dim);margin-top:10px">A mirror base under the ink. Nothing printed on white looks like it.</p>
+        <p class="note">Colours shift over silver — a warm red turns orange. Worth a proof.</p>
+      </div>
+      <div class="card rise">
+        <h3 class="foil">Soft touch</h3>
+        <p style="font-size:14.5px;color:var(--dim);margin-top:10px">Velvet under the hand. The finish people notice without knowing why.</p>
+        <p class="note">It scuffs on dark solids. Use anti-scuff matte or it arrives fingerprinted.</p>
+      </div>
+      <div class="card rise" style="transition-delay:.08s">
+        <h3 class="foil">Emboss &amp; deboss</h3>
+        <p style="font-size:14.5px;color:var(--dim);margin-top:10px">Relief you can feel through the shrink wrap.</p>
+        <p class="note">Board over 350gsm holds the shape. Lighter stock relaxes back within a week.</p>
+      </div>
+      <div class="card rise" style="transition-delay:.16s">
+        <h3 class="foil">Structure &amp; keylines</h3>
+        <p style="font-size:14.5px;color:var(--dim);margin-top:10px">Tuck ends, sleeves, rigid boxes, crash-lock bases — drawn to your product, not pulled from a template.</p>
+        <p class="note">Cut in professional structural software, not an Illustrator template that nearly folds.</p>
+      </div>
+    </div>
+  </section>
+</div>
+<hr class="rule">
+
+<div class="wrap">
+  <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:44px;align-items:start">
+    <div class="rise">
+      <div class="stat foil">1998</div>
+      <p style="font-size:14.5px;color:var(--dim);margin-top:14px">Working in print since. Not a marketplace reseller — a designer who has stood at the press.</p>
+    </div>
+    <div class="rise" style="transition-delay:.12s">
+      <div class="stat foil">200</div>
+      <p style="font-size:14.5px;color:var(--dim);margin-top:14px">Minimum order. Small enough for a launch or a sample run, when everyone else says five thousand.</p>
+    </div>
+    <div class="rise" style="transition-delay:.24s">
+      <div class="stat foil">Free</div>
+      <p style="font-size:14.5px;color:var(--dim);margin-top:14px">Keyline and 3D visual, yours to keep — whether or not you end up printing with me.</p>
+    </div>
+  </section>
+</div>
+<hr class="rule">
+
+<div class="wrap">
+  <section>
+    <p class="eyebrow rise">How it works</p>
+    <div class="steps">
+      <div class="step rise"><h3 style="font-size:18px">You send a logo</h3>
+        <p style="font-size:14px;color:var(--dim);margin-top:9px">And a rough idea of the product and quantity. That's enough to start.</p></div>
+      <div class="step rise" style="transition-delay:.1s"><h3 style="font-size:18px">I send a visual</h3>
+        <p style="font-size:14px;color:var(--dim);margin-top:9px">Keyline plus a 3D render on your exact box. Free, within two working days.</p></div>
+      <div class="step rise" style="transition-delay:.2s"><h3 style="font-size:18px">We fix the price</h3>
+        <p style="font-size:14px;color:var(--dim);margin-top:9px">Quoted delivered to your address, freight included. No surprises on arrival.</p></div>
+      <div class="step rise" style="transition-delay:.3s"><h3 style="font-size:18px">I stand at the press</h3>
+        <p style="font-size:14px;color:var(--dim);margin-top:9px">Proof approved first. Photographs before dispatch.</p></div>
+    </div>
+  </section>
+</div>
+<hr class="rule">
+
+<div class="wrap" id="enquire">
+  <section>
+    <p class="eyebrow rise">Start a project</p>
+    <h2 class="rise" style="margin-bottom:36px">Tell me what <span class="foil">you're packing.</span></h2>
+    <div style="max-width:580px" class="rise">
+      <div class="f2">
+        <div class="f"><label>Name</label><input placeholder="Hannah Vance"></div>
+        <div class="f"><label>Email</label><input placeholder="hannah@brand.co.uk"></div>
+      </div>
+      <div class="f"><label>What are you packing?</label><input placeholder="50 ml serum carton"></div>
+      <div class="f2">
+        <div class="f"><label>Quantity</label>
+          <select style="color:var(--cream)">
+            <option>200 – 500</option><option>500 – 1,000</option><option>1,000 – 5,000</option>
+            <option>5,000 – 20,000</option><option>20,000+</option><option>Not sure yet</option>
+          </select></div>
+        <div class="f"><label>Where to?</label><input placeholder="Bristol, United Kingdom"></div>
+      </div>
+      <div class="f"><label>Finishes you're drawn to</label>
+        <div class="chips">
+          <span class="chip">Hot foil</span><span class="chip">Drip-off</span><span class="chip">Metalized</span>
+          <span class="chip">Soft touch</span><span class="chip">Emboss</span><span class="chip">Not sure — advise me</span>
+        </div></div>
+      <div class="f"><label>Anything else, plus a link to your logo</label><textarea rows="4" placeholder="Dropbox or Drive link is fine."></textarea></div>
+      <a class="cta" href="#">Send enquiry</a>
+    </div>
+  </section>
+</div>
+<hr class="rule">
+
+<div class="wrap">
+  <footer>
+    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:18px">
+      <span class="foil" style="font-family:'Bodoni Moda',Georgia,serif;font-size:16px">Fam de Studio</span>
+      <span>famdestudio@gmail.com &nbsp;·&nbsp; WhatsApp +92 324 1691194</span>
+    </div>
+  </footer>
+</div>
+
+<script>
+  // Only once JS is confirmed running do the reveal animations arm themselves.
+  document.body.classList.add('js');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px' });
+  document.querySelectorAll('.rise').forEach((el) => io.observe(el));
+</script>
+
+</body>
+</html>
