@@ -27,7 +27,7 @@ describe('dielineToSvg', () => {
 
   it('draws one crease line per fold edge', () => {
     const d = buildDieline(spec)
-    const creaseBlock = svg.split('<g id="crease"')[1]
+    const creaseBlock = svg.split('<g id="crease"')[1].split('</g>')[0]
     const lines = creaseBlock.match(/<line /g) ?? []
     expect(lines.length).toBe(d.folds.length)
   })
