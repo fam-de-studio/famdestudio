@@ -1,9 +1,8 @@
 import type { Metadata } from 'next'
-import { Bodoni_Moda, Archivo, IBM_Plex_Mono } from 'next/font/google'
+import { Archivo, IBM_Plex_Mono } from 'next/font/google'
 import './globals.css'
 
-const bodoni = Bodoni_Moda({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-display' })
-const archivo = Archivo({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-body' })
+const archivo = Archivo({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-body' })
 const mono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-mono' })
 
 export const metadata: Metadata = {
@@ -21,7 +20,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${bodoni.variable} ${archivo.variable} ${mono.variable}`}>
+    <html lang="en" className={`${archivo.variable} ${mono.variable}`}>
       <body>{children}</body>
     </html>
   )

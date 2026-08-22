@@ -69,35 +69,35 @@ export function InquiryForm() {
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <label className="block">
-          <span className="mb-2 block text-[13.5px]" style={{ color: 'var(--dim)' }}>Name</span>
+          <span className="font-mono2 mb-2 block text-[11px] uppercase tracking-[.14em]" style={{ color: 'var(--dim)' }}>Name</span>
           <input name="name" required className="field" placeholder="Hannah Vance" />
         </label>
         <label className="block">
-          <span className="mb-2 block text-[13.5px]" style={{ color: 'var(--dim)' }}>Email</span>
+          <span className="font-mono2 mb-2 block text-[11px] uppercase tracking-[.14em]" style={{ color: 'var(--dim)' }}>Email</span>
           <input name="email" type="email" required className="field" placeholder="hannah@brand.co.uk" />
         </label>
       </div>
 
       <label className="mt-5 block">
-        <span className="mb-2 block text-[13.5px]" style={{ color: 'var(--dim)' }}>What are you packing?</span>
+        <span className="font-mono2 mb-2 block text-[11px] uppercase tracking-[.14em]" style={{ color: 'var(--dim)' }}>What are you packing?</span>
         <input name="packing" required className="field" placeholder="50 ml serum carton" />
       </label>
 
       <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
         <label className="block">
-          <span className="mb-2 block text-[13.5px]" style={{ color: 'var(--dim)' }}>Quantity</span>
+          <span className="font-mono2 mb-2 block text-[11px] uppercase tracking-[.14em]" style={{ color: 'var(--dim)' }}>Quantity</span>
           <select name="quantity" className="field">
             {QUANTITIES.map((q) => <option key={q}>{q}</option>)}
           </select>
         </label>
         <label className="block">
-          <span className="mb-2 block text-[13.5px]" style={{ color: 'var(--dim)' }}>Where to?</span>
+          <span className="font-mono2 mb-2 block text-[11px] uppercase tracking-[.14em]" style={{ color: 'var(--dim)' }}>Where to?</span>
           <input name="destination" className="field" placeholder="Bristol, United Kingdom" />
         </label>
       </div>
 
       <div className="mt-5">
-        <span className="mb-2 block text-[13.5px]" style={{ color: 'var(--dim)' }}>Finishes you&apos;re drawn to</span>
+        <span className="font-mono2 mb-2 block text-[11px] uppercase tracking-[.14em]" style={{ color: 'var(--dim)' }}>Finishes you&apos;re drawn to</span>
         <div className="flex flex-wrap gap-2.5">
           {FINISH_CHIPS.map((f) => (
             <button key={f} type="button" className="chip" aria-pressed={finishes.includes(f)} onClick={() => toggleFinish(f)}>
@@ -108,7 +108,7 @@ export function InquiryForm() {
       </div>
 
       <label className="mt-5 block">
-        <span className="mb-2 block text-[13.5px]" style={{ color: 'var(--dim)' }}>Anything else, plus a link to your logo</span>
+        <span className="font-mono2 mb-2 block text-[11px] uppercase tracking-[.14em]" style={{ color: 'var(--dim)' }}>Anything else, plus a link to your logo</span>
         <textarea name="message" rows={4} className="field" placeholder="Dropbox or Drive link is fine." />
       </label>
 
