@@ -509,74 +509,66 @@ function unitStr(v){
 function pkr(v){ return n(v).toLocaleString('en-US',{maximumFractionDigits:0}); }
 
 /* ====================== COSTING ENGINE ====================== */
-function rate(k){
-  var v = DB.rates[k];
-  return (v === undefined || v === '' || v === null) ? n(DEFAULT_RATES[k]) : n(v);
-}
-function boardRate(name){
-  for(var i=0;i<DB.boards.length;i++) if(DB.boards[i].name === name) return n(DB.boards[i].pkr_per_kg);
-  return 0;
-}
-function filmRate(name){
-  for(var i=0;i<DB.films.length;i++) if(DB.films[i].name === name) return n(DB.films[i].pkr_per_sqin);
-  return 0;
-}
+/* Pure — no DB, no job global, no DOM. tools/test-engine.mjs extracts and
+   verifies everything between the markers before every clasp push. */
+/* ENGINE-START */
+function n_(v){ var x = parseFloat(v); return isFinite(x) ? x : 0; }
+function rateOf(ctx, k, fb){ var v = ctx.rates[k]; return (v === undefined || v === '' || v === null) ? n_(fb) : n_(v); }
+function boardRate(ctx, name){ for(var i=0;i<ctx.boards.length;i++) if(ctx.boards[i].name === name) return n_(ctx.boards[i].pkr_per_kg); return 0; }
+function filmRate(ctx, name){ for(var i=0;i<ctx.films.length;i++) if(ctx.films[i].name === name) return n_(ctx.films[i].pkr_per_sqin); return 0; }
 
-function imposition(){
-  var ew = n(job.psw) - n(job.trim_w);
-  var eh = n(job.psh) - n(job.trim_h);
-  var fw = n(job.flat_w), fh = n(job.flat_h);
+function imposition(job){
+  var ew = n_(job.psw) - n_(job.trim_w), eh = n_(job.psh) - n_(job.trim_h);
+  var fw = n_(job.flat_w), fh = n_(job.flat_h);
   if(fw <= 0 || fh <= 0 || ew <= 0 || eh <= 0) return {ew:ew, eh:eh, ups:0};
   var a = Math.floor(ew/fw) * Math.floor(eh/fh);
   var b = Math.floor(ew/fh) * Math.floor(eh/fw);
   return {ew:ew, eh:eh, ups:Math.max(a,b)};
 }
 
-/* Full recost at any quantity. Tooling and make-ready do not repeat. */
-function costFor(qty){
-  var imp = imposition();
-  var ups = imp.ups;
+/* Full recost at any quantity. */
+function costForQty(job, ctx, qty){
+  var imp = imposition(job), ups = imp.ups;
   if(ups <= 0 || qty <= 0){
-    return {ups:0, gross:0, total:0, perPc:0, exw:0, exwPc:0, freight:0,
-            ddp:0, ddpPc:0, profit:0, kgTotal:0};
+    return {ups:0, gross:0, parts:{}, direct:0, total:0, perPc:0, exw:0, exwPc:0,
+            freight:0, bankFee:0, ddp:0, ddpPc:0, profit:0, kgTotal:0, boxKg:0};
   }
   var net = Math.ceil(qty/ups);
-  var gross = Math.ceil(net * (1 + rate('waste'))) + rate('setup_sheets');
-  var kgSheet = (n(job.psw)*n(job.psh)/1e6) * n(job.gsm) / 1000;
-  var area = (n(job.psw)/25.4) * (n(job.psh)/25.4);
-  var plates = n(job.col_f) + n(job.col_b);
+  var gross = Math.ceil(net * (1 + rateOf(ctx,'waste',0.07))) + rateOf(ctx,'setup_sheets',200);
+  var kgSheet = (n_(job.psw)*n_(job.psh)/1e6) * n_(job.gsm) / 1000;
+  var area = (n_(job.psw)/25.4) * (n_(job.psh)/25.4);
+  var plates = n_(job.col_f) + n_(job.col_b);
 
   var c = {
-    paper: gross * kgSheet * boardRate(job.board),
-    plate: plates * rate('plate'),
-    print: gross/1000 * rate('print') * plates,
-    proof: rate('proof'),
-    lam:   gross * area * filmRate(job.lam),
-    uv:    job.uv === 'Yes' ? rate('uv_setup') + gross * rate('uv_run') : 0,
-    foil:  job.foil === 'Yes' ? n(job.foil_area) * rate('foil_block') + gross * rate('foil_run') : 0,
-    emb:   job.emb === 'Yes' ? n(job.emb_area) * rate('emb_block') + gross * rate('emb_run') : 0,
-    die:   n(job.die_cost),
-    dc:    gross/1000 * rate('dc_run'),
-    paste: qty * rate('paste'),
-    pack:  qty * rate('pack'),
-    other: n(job.other_pkr),
-    tr:    n(job.local_tr)
+    board: gross * kgSheet * boardRate(ctx, job.board),
+    plates: plates * rateOf(ctx,'plate',1200),
+    print: gross/1000 * rateOf(ctx,'print',900) * plates,
+    proof: rateOf(ctx,'proof',3500),
+    lam:   gross * area * filmRate(ctx, job.lam),
+    uv:    job.uv === 'Yes' ? rateOf(ctx,'uv_setup',3000) + gross * rateOf(ctx,'uv_run',3.5) : 0,
+    foil:  job.foil === 'Yes' ? n_(job.foil_area) * rateOf(ctx,'foil_block',45) + gross * rateOf(ctx,'foil_run',2.5) : 0,
+    emb:   job.emb === 'Yes' ? n_(job.emb_area) * rateOf(ctx,'emb_block',60) + gross * rateOf(ctx,'emb_run',2) : 0,
+    die:   n_(job.die_cost),
+    dc:    gross/1000 * rateOf(ctx,'dc_run',1800),
+    paste: qty * rateOf(ctx,'paste',2.5),
+    pack:  qty * rateOf(ctx,'pack',1.5),
+    other: n_(job.other_pkr),
+    tr:    n_(job.local_tr)
   };
   var direct = 0;
   for(var k in c) direct += c[k];
-  var total = direct * (1 + rate('overhead'));
+  var total = direct * 1.08; /* removed in Task 2 */
 
-  var margin = rate('margin');
-  var fx = rate('fx');
+  var margin = rateOf(ctx,'margin',0.4), fx = rateOf(ctx,'fx',285);
   var exw = (margin >= 1 || fx <= 0) ? 0 : total / (1 - margin) / fx;
 
-  var boxKg = (n(job.flat_w) * n(job.flat_h) / 1e6) * n(job.gsm) / 1000;
-  var grossKg = boxKg * qty * (1 + n(job.pack_pct));
-  var freight = job.mode === 'Sea LCL' ? n(job.cbm) * rate('fr_sea')
-              : job.mode === 'DHL Express' ? grossKg * rate('fr_dhl')
-              : grossKg * rate('fr_air');
-  var bankFee = exw * rate('bank_pct');
-  var ddp = exw + freight + rate('docs') + bankFee;
+  var boxKg = (n_(job.flat_w) * n_(job.flat_h) / 1e6) * n_(job.gsm) / 1000;
+  var grossKg = boxKg * qty * (1 + n_(job.pack_pct));
+  var freight = job.mode === 'Sea LCL' ? n_(job.cbm) * rateOf(ctx,'fr_sea',180)
+              : job.mode === 'DHL Express' ? grossKg * rateOf(ctx,'fr_dhl',9)
+              : grossKg * rateOf(ctx,'fr_air',5.5);
+  var bankFee = exw * rateOf(ctx,'bank_pct',0.02);
+  var ddp = exw + freight + rateOf(ctx,'docs',120) + bankFee;
 
   return {
     ups:ups, gross:gross, parts:c, direct:direct, total:total, perPc:total/qty,
@@ -586,9 +578,14 @@ function costFor(qty){
   };
 }
 
+function computeCost(job, ctx){ return costForQty(job, ctx, n_(job.qty)); }
+/* ENGINE-END */
+
+function ctx_(){ return {rates: DB.rates, boards: DB.boards, films: DB.films}; }
+
 function calc(){
-  var m = costFor(n(job.qty));
-  var b = costFor(n(job.qty2));
+  var m = computeCost(job, ctx_());
+  var b = costForQty(job, ctx_(), n(job.qty2));
   m.unit2 = job.unit2_auto === 'Yes' ? b.ddpPc : n(job.unit2);
   m.unit2Auto = b.ddpPc;
   m.total2 = n(job.qty2) * m.unit2;
@@ -757,7 +754,7 @@ function renderPanel(){
 }
 
 function renderInfo(m){
-  var imp = imposition();
+  var imp = imposition(job);
   var map = {
     flat: 'Suggested for a tuck end: <b>' + int(2*(n(job.len)+n(job.wid))+n(job.flap)) + ' × '
         + int(n(job.hgt)+2*n(job.wid)) + ' mm</b>. Override for rigid, sleeve or mailer styles.',
@@ -1119,7 +1116,7 @@ document.getElementById('b-save').addEventListener('click', function(){
   job.ddp = Number(m.ddp.toFixed(2)); job.ddp_pc = Number(m.ddpPc.toFixed(4));
   job.profit = Number(m.profit.toFixed(2));
   job.unit2 = Number(m.unit2.toFixed(4));
-  job.fx_used = rate('fx'); job.margin_used = rate('margin');
+  job.fx_used = rateOf(ctx_(),'fx',285); job.margin_used = rateOf(ctx_(),'margin',0.4);
 
   if(LIVE){
     google.script.run.withSuccessHandler(function(r){
