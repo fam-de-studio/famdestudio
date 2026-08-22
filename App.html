@@ -650,7 +650,8 @@ var PANEL = [
       'Straight Tuck End (STE)','Reverse Tuck End (RTE)','Auto-Lock Bottom','Seal End','Sleeve',
       'Pillow Box','Gable Box','Window Carton','Rigid Two-Piece','Rigid Magnetic',
       'Drawer / Matchbox','Rigid Tube','Mailer / Roll-End','Display Box (PDQ)']},
-    {k:'qty', l:'Order quantity (pcs)', type:'num'}
+    {k:'qty', l:'Order quantity (pcs)', type:'num'},
+    {toggles:['repeat'], l:['Repeat order — tooling already made']}
   ]},
   {t:'Box size & dieline', open:true, f:[
     {g:['len','wid','hgt'], l:['Length L (mm)','Width W (mm)','Height H (mm)'], type:'num'},
@@ -677,9 +678,12 @@ var PANEL = [
   {t:'Tooling', f:[
     {g:['die_cost','local_tr'], l:['Cutting die (PKR)','Local transport (PKR)'], type:'num'}
   ]},
-  {t:'Freight', open:true, f:[
+  {t:'Cost lines — vendor & override', f:[ {costlines:true} ]},
+  {t:'Freight & terms', open:true, f:[
     {k:'mode', l:'Freight mode', type:'select', opts:['DHL Express','Air Freight','Sea LCL']},
-    {g:['pack_pct','cbm'], l:['Carton allowance (0.08 = 8%)','Volume (CBM, sea only)'], type:'num'},
+    {k:'incoterm', l:'Delivery term', type:'select', opts:['DAP','DDP']},
+    {g:['duty_pct','vat_pct'], l:['Duty (0.03 = 3%)','VAT (0.20 = 20%)'], type:'num'},
+    {g:['pack_pct','cbm_override'], l:['Carton allowance (0.08 = 8%)','CBM override (sea)'], type:'num'},
     {info:'weight'}
   ]},
   {t:'Option B — the upsell', f:[
@@ -738,6 +742,28 @@ function sectionOpen(sec){
   return Object.prototype.hasOwnProperty.call(SEC_OPEN, sec.t) ? !!SEC_OPEN[sec.t] : !!sec.open;
 }
 
+var LINE_LABELS = {
+  board:'Board / paper', plates:'Plates', print:'Printing', proof:'Proof',
+  lam:'Lamination', uv:'Spot UV / drip-off', foil:'Hot foil', emb:'Emboss',
+  die:'Cutting die', dc:'Die cutting', paste:'Pasting', pack:'Packing',
+  other:'Other', tr:'Local transport'
+};
+function costLinesHtml(){
+  var m = computeCost(job, ctx_());
+  var h = '<table class="rtab"><tr><th>Line</th><th style="width:90px">Auto PKR</th>'
+        + '<th style="width:90px">Override</th><th>Vendor</th></tr>';
+  Object.keys(LINE_LABELS).forEach(function(k){
+    var ov = (job.overrides || {})[k];
+    h += '<tr><td style="font-size:12px">' + esc(LINE_LABELS[k]) + '</td>'
+      + '<td style="font-size:12px;color:var(--app-dim)">' + pkr(m.parts[k] || 0) + '</td>'
+      + '<td><input class="n" data-ov="' + k + '" type="number" step="any" value="'
+      + esc(ov === undefined ? '' : ov) + '" placeholder="auto"></td>'
+      + '<td><input data-vd="' + k + '" value="' + esc((job.vendors || {})[k] || '')
+      + '" placeholder="—"></td></tr>';
+  });
+  return h + '</table>';
+}
+
 function renderPanel(){
   var h = '<datalist id="clientlist">';
   DB.clients.forEach(function(c){ h += '<option value="'+esc(c.name)+'">'; });
@@ -757,6 +783,8 @@ function renderPanel(){
         h += '<button class="btn" data-act="'+row.act+'" style="justify-self:start">'+esc(row.btn)+'</button>';
       } else if(row.info){
         h += '<div class="hintline" data-info="'+row.info+'"></div>';
+      } else if(row.costlines){
+        h += costLinesHtml();
       } else if(row.toggles){
         h += '<div class="toggles">';
         row.toggles.forEach(function(k, i){
@@ -794,7 +822,8 @@ function renderInfo(m){
           + ' ups</b> per sheet · <b>' + int(m.gross) + '</b> sheets to buy'
         : 'The dieline does not fit this press sheet. Check the flat size.',
     weight: 'Each box <b>' + n(m.boxKg*1000).toFixed(1) + ' g</b> · shipment <b>'
-        + n(m.kgTotal).toFixed(1) + ' kg</b> · freight <b>' + usd(m.freight, 0) + '</b>',
+        + n(m.kgTotal).toFixed(1) + ' kg</b> · sea volume <b>' + n(m.cbmAuto).toFixed(2)
+        + ' CBM</b> · freight <b>' + usd(m.freight, 0) + '</b>',
     optionb: 'Fully recosted at ' + int(job.qty2) + ' pcs: <b>' + unitStr(m.unit2Auto)
         + '</b> per box' + (m.ddpPc > 0 ? ' — <b>' + Math.round((1 - m.unit2Auto/m.ddpPc)*100)
         + '% cheaper</b> than ' + int(job.qty) + ' pcs' : '')
@@ -854,6 +883,7 @@ function renderQuote(m){
     + spec('Lamination', job.lam)
     + spec('Cutting & forming', 'Die cut, creased, side-seam glued')
     + spec('Packing', 'Flat-packed, lined export cartons')
+    + (job.repeat === 'Yes' ? spec('Order type', 'Repeat order — tooling retained from your previous run') : '')
     + spec('Artwork', 'Print-ready PDF supplied by client · dieline supplied by us, free of charge', 'w3')
     + '</dl>';
 
@@ -862,10 +892,10 @@ function renderQuote(m){
        : '<span class="pline">Standard finish — no decorative process</span>')
     + '</div>';
 
-  h += '<div class="hr"></div><p class="eyebrow">Commercial — delivered duty paid</p>'
+  h += '<div class="hr"></div><p class="eyebrow">Commercial — ' + (job.incoterm === 'DDP' ? 'delivered duty paid' : 'delivered to your address') + '</p>'
     + '<div class="comm">'
     + '<dl class="fig"><dt>Quantity</dt><dd>' + int(job.qty) + ' pcs</dd></dl>'
-    + '<dl class="fig"><dt>Unit price · DDP</dt><dd>' + unitStr(m.ddpPc) + '</dd></dl>'
+    + '<dl class="fig"><dt>Unit price · ' + esc(job.incoterm || 'DAP') + '</dt><dd>' + unitStr(m.ddpPc) + '</dd></dl>'
     + '<dl class="fig tot"><dt>Total order value</dt><dd>' + usd(m.ddp, 0) + '</dd></dl>'
     + '</div><div class="tier"><div class="l">Option B — volume</div>'
     + '<div class="m">' + int(job.qty2) + ' pcs @ ' + unitStr(m.unit2) + '</div>'
@@ -876,7 +906,9 @@ function renderQuote(m){
 
   h += '<div class="pgbreak"></div>'
     + '<div class="hr"></div><p class="eyebrow">Terms</p><dl class="terms">'
-    + term('Incoterm', 'DDP — delivered to your address. Freight and duty are inside the unit price. No further charges on arrival.')
+    + term('Incoterm', job.incoterm === 'DDP'
+        ? 'DDP — delivered duty paid. Freight, duty and VAT are inside the unit price. No further charges on arrival.'
+        : 'DAP — delivered to your address, freight included. Import duty and VAT, if any, are payable by the buyer; your courier collects them if they apply.')
     + term('Lead time', esc(job.lead_time) + ' working days from written artwork approval and receipt of advance.')
     + term('Freight', esc(job.mode) + ' — transit ' + esc(job.transit) + ' days.')
     + term('Payment', '50% with the purchase order, 50% against dispatch photographs before the shipment is handed over.')
@@ -914,7 +946,7 @@ function renderPi(m){
     + '<div><p class="eyebrow">Consignee</p><p class="pname">' + esc(job.client_name || '—') + '</p>'
     + '<div class="pline">' + lines([job.client_contact, job.client_address, job.client_country]) + '</div></div>'
     + '<div><p class="eyebrow">Shipment</p><div class="pline" style="padding-top:8px">'
-    + 'Incoterm: DDP ' + esc(job.client_country) + '<br>'
+    + 'Incoterm: ' + esc(job.incoterm || 'DAP') + ' ' + esc(job.client_country) + '<br>'
     + 'Mode: ' + esc(job.mode) + '<br>'
     + 'Gross weight: ' + n(m.kgTotal).toFixed(1) + ' kg · ' + int(job.cartons) + ' export cartons<br>'
     + 'Country of origin: Pakistan</div></div></section>';
@@ -929,12 +961,13 @@ function renderPi(m){
     + '<span class="sub">HS Code ' + esc(job.hs_code) + ' — folding cartons of non-corrugated paperboard</span>'
     + '</td><td class="n r">' + int(job.qty) + '</td><td class="n r">' + unitStr(m.ddpPc) + '</td>'
     + '<td class="n r">' + usd(m.ddp) + '</td></tr>'
-    + '<tr><td>Tooling — cutting die and foil block'
+    + '<tr><td>' + (job.repeat === 'Yes' ? 'Tooling — retained from your previous order'
+        : 'Tooling — cutting die and foil block')
     + '<span class="sub">One-time. Retained in our storage; not charged on repeat orders.</span></td>'
     + '<td class="n r">1</td><td class="n r">$0.00</td><td class="n r">$0.00</td></tr>'
     + '<tr><td colspan="3" class="r" style="font-family:\'IBM Plex Mono\',monospace;font-size:9px;'
     + 'letter-spacing:.15em;text-transform:uppercase;color:var(--docbrass);padding-top:16px">'
-    + 'Total invoice value · DDP</td><td class="n r" style="font-size:18px;font-weight:600;padding-top:16px">'
+    + 'Total invoice value · ' + esc(job.incoterm || 'DAP') + '</td><td class="n r" style="font-size:18px;font-weight:600;padding-top:16px">'
     + usd(m.ddp) + '</td></tr></tbody></table>';
 
   h += '<dl class="pay"><div class="due"><dt>Advance — due now</dt><dd>' + usd(m.ddp/2)
@@ -992,6 +1025,19 @@ document.getElementById('panel').addEventListener('toggle', function(e){
 }, true);
 
 document.getElementById('panel').addEventListener('input', function(e){
+  var ovk = e.target.getAttribute('data-ov');
+  if(ovk){
+    job.overrides = job.overrides || {};
+    if(e.target.value === '') delete job.overrides[ovk];
+    else job.overrides[ovk] = n(e.target.value);
+    renderAll(); return;
+  }
+  var vdk = e.target.getAttribute('data-vd');
+  if(vdk){
+    job.vendors = job.vendors || {};
+    if(e.target.value === '') delete job.vendors[vdk]; else job.vendors[vdk] = e.target.value;
+    return; /* names don't change money — no re-render, keeps focus */
+  }
   var k = e.target.getAttribute('data-k');
   if(!k) return;
   job[k] = (e.target.type === 'number') ? n(e.target.value) : e.target.value;
@@ -1239,6 +1285,10 @@ function applyLoaded(o){
   });
   if(typeof base.extras === 'string') base.extras = base.extras ? base.extras.split('|') : [];
   if(!Array.isArray(base.extras)) base.extras = [];
+  ['overrides','vendors'].forEach(function(k){
+    if(typeof base[k] === 'string' && base[k]){ try{ base[k] = JSON.parse(base[k]); }catch(e){ base[k] = {}; } }
+    if(!base[k] || typeof base[k] !== 'object' || Array.isArray(base[k])) base[k] = {};
+  });
   base.quote_no = o.quote_no || '';
   base.pi_no = o.pi_no || '';
   base.po_ref = o.po_ref || '';
@@ -1308,8 +1358,7 @@ document.getElementById('b-settings').addEventListener('click', function(){
     ['Bank — shown on the proforma invoice', [['bank_benef','Beneficiary'],['bank_name','Bank'],
       ['bank_branch','Branch'],['bank_iban','Account / IBAN'],['bank_swift','SWIFT / BIC'],
       ['bank_payoneer','Payoneer']]],
-    ['Numbering', [['quote_prefix','Quotation prefix'],['quote_next','Next quotation number'],
-      ['pi_prefix','PI prefix'],['pi_next','Next PI number']]]
+    ['Numbering', [['quote_prefix','Quotation prefix'],['pi_prefix','PI prefix']]]
   ];
   var h = '<header><h3>Settings</h3><div class="spacer"></div><button class="btn" data-close>Cancel</button>'
         + '<button class="btn btn-go" id="s-save">Save settings</button></header><div class="body">';
@@ -1321,7 +1370,19 @@ document.getElementById('b-settings').addEventListener('click', function(){
     });
     h += '</div></div>';
   });
+  h += '<div class="grp"><h4>Counters — change deliberately</h4><div style="display:grid;gap:11px">'
+    + '<div class="f"><label>Next quotation number</label><input id="c-q" type="number" value="' + esc(DB.settings.quote_next || 1) + '"></div>'
+    + '<div class="f"><label>Next PI number</label><input id="c-p" type="number" value="' + esc(DB.settings.pi_next || 1) + '"></div>'
+    + '<button class="btn" id="c-save" style="justify-self:start">Save counters only</button>'
+    + '</div></div>';
   openModal(h + '</div>');
+
+  document.getElementById('c-save').addEventListener('click', function(){
+    var payload = { quote_next: n(document.getElementById('c-q').value), pi_next: n(document.getElementById('c-p').value) };
+    DB.settings.quote_next = payload.quote_next; DB.settings.pi_next = payload.pi_next;
+    call('saveCounters', payload, function(){});
+    persistDemo(); toast('Counters saved');
+  });
 
   document.getElementById('s-save').addEventListener('click', function(){
     var o = {};
