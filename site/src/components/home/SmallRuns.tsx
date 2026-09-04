@@ -30,7 +30,7 @@ export function SmallRuns() {
             <h2 id="small-runs-title" className="t-display mt-8">
               Small runs.
               <br />
-              No <span className="t-italic">shortcuts.</span>
+              No <span className="t-italic foil">shortcuts.</span>
             </h2>
           </Reveal>
           <Reveal index={1} className="mt-12 max-w-xl space-y-6">

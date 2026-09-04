@@ -1,5 +1,6 @@
 import { Hero } from "@/components/home/Hero";
 import { Intro } from "@/components/home/Intro";
+import { Marquee } from "@/components/home/Marquee";
 import { Expertise } from "@/components/home/Expertise";
 import { SelectedWork } from "@/components/home/SelectedWork";
 import { Finishing } from "@/components/home/Finishing";
@@ -39,6 +40,7 @@ export default function HomePage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <Hero />
+      <Marquee />
       <Intro />
       <Expertise />
       <SelectedWork />

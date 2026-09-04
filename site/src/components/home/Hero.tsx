@@ -34,7 +34,7 @@ export function Hero() {
           <h1 id="hero-title" className="t-display reveal is-in mt-8" style={{ ["--i" as string]: 2 }}>
             Luxury packaging
             <br />
-            made to be <span className="t-italic">felt.</span>
+            made to be <span className="t-italic foil">felt.</span>
           </h1>
           <p className="t-lead reveal is-in mt-8 max-w-xl text-text/85" style={{ ["--i" as string]: 3 }}>
             Premium packaging design and production for brands that care about every detail.

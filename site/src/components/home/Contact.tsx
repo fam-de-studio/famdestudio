@@ -12,7 +12,7 @@ export function Contact() {
             <Reveal>
               <Eyebrow>Contact</Eyebrow>
               <h2 id="contact-title" className="t-h1 mt-8">
-                Let&rsquo;s make something <span className="t-italic">exceptional.</span>
+                Let&rsquo;s make something <span className="t-italic foil-dark">exceptional.</span>
               </h2>
               <p className="t-lead mt-8 max-w-md text-muted">
                 Tell us about your product, quantity and the finish you have in mind.

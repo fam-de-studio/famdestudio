@@ -30,7 +30,7 @@ export function WorkTile({
   return (
     <Reveal index={index} as="article" className={className}>
       <Link href={`/work/${project.slug}`} className="group block" data-cursor="view">
-        <Reveal variant="image" className={`hover-zoom overflow-hidden bg-ink-2 ${aspect[project.size]}`}>
+        <Reveal variant="image" className={`sheen hover-zoom overflow-hidden bg-ink-2 ${aspect[project.size]}`}>
           <Image
             src={project.cover.src}
             alt={project.cover.alt}

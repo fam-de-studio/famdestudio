@@ -4,6 +4,7 @@ import { site } from "@/content/site";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { Cursor } from "@/components/site/Cursor";
+import { ScrollProgress } from "@/components/site/ScrollProgress";
 import "./globals.css";
 
 const instrument = Instrument_Serif({
@@ -67,6 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Skip to content
         </a>
+        <ScrollProgress />
         <Nav />
         <main id="main">{children}</main>
         <Footer />

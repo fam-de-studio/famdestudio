@@ -21,7 +21,7 @@ export function Finishing() {
           <div className="lg:col-span-7">
             <Eyebrow>Finishing</Eyebrow>
             <h2 id="finishing-title" className="t-h1 mt-8">
-              The art of <span className="t-italic">finishing</span>
+              The art of <span className="t-italic foil">finishing</span>
             </h2>
           </div>
           <p className="t-lead text-muted lg:col-span-4 lg:col-start-9 lg:pt-4">
@@ -71,7 +71,7 @@ function FeatureRow({
       <Reveal
         variant="image"
         index={index}
-        className={`overflow-hidden lg:col-span-8 ${flip ? "lg:order-2 lg:col-start-5" : ""}`}
+        className={`sheen hover-zoom overflow-hidden lg:col-span-8 ${flip ? "lg:order-2 lg:col-start-5" : ""}`}
       >
         <Image
           src={finish.image}
@@ -99,7 +99,7 @@ function Swatch({
 }) {
   return (
     <div className={className}>
-      <Reveal variant="image" index={index} className="overflow-hidden">
+      <Reveal variant="image" index={index} className="sheen hover-zoom overflow-hidden">
         <Image
           src={finish.image}
           alt={finish.alt}
