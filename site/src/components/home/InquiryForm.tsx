@@ -163,7 +163,7 @@ export function InquiryForm() {
         <button
           type="submit"
           disabled={status === "sending"}
-          className="t-nav bg-text-d px-8 py-5 text-ivory transition-colors duration-500 hover:bg-champagne-2 disabled:opacity-60"
+          className="t-nav btn-gold px-8 py-5 disabled:opacity-60"
         >
           {status === "sending" ? "Sending…" : "Request a quote"}
         </button>

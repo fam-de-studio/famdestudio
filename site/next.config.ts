@@ -2,11 +2,12 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    formats: ["image/avif", "image/webp"],
-    qualities: [60, 70, 75, 82],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1440, 1920],
-    imageSizes: [256, 384, 512, 640],
-    minimumCacheTTL: 60 * 60 * 24 * 30,
+    // All site images are pre-encoded at build time (scripts/optimize-images.mjs)
+    // and served as immutable static WebP files; see src/lib/image-loader.ts.
+    loader: "custom",
+    loaderFile: "./src/lib/image-loader.ts",
+    deviceSizes: [480, 768, 1080, 1440, 1920],
+    imageSizes: [256, 384],
   },
   poweredByHeader: false,
   compress: true,
@@ -18,6 +19,11 @@ const nextConfig: NextConfig = {
         { key: "X-Frame-Options", value: "SAMEORIGIN" },
         { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
       ],
+    },
+    {
+      // Content-hashed filenames: safe to cache forever
+      source: "/img/:path*",
+      headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
     },
   ],
 };

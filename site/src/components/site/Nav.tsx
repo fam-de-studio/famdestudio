@@ -53,7 +53,7 @@ export function Nav() {
             ))}
             <Link
               href={site.cta.href}
-              className="t-nav ml-3 border border-line-strong px-5 py-3 transition-colors duration-500 hover:border-champagne hover:text-champagne"
+              className="t-nav btn-gold ml-3 px-5 py-3"
             >
               {site.cta.label}
             </Link>
@@ -123,7 +123,7 @@ export function Nav() {
             <Link
               href={site.cta.href}
               onClick={() => setOpen(false)}
-              className="t-nav inline-flex justify-center bg-text px-7 py-5 text-ink"
+              className="t-nav btn-gold inline-flex justify-center px-7 py-5"
               tabIndex={open ? 0 : -1}
             >
               {site.cta.label}

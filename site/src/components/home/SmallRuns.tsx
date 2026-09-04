@@ -42,7 +42,7 @@ export function SmallRuns() {
             </p>
           </Reveal>
           <Reveal index={2} className="mt-12 flex flex-wrap items-center gap-8">
-            <Link href="/#contact" className="t-nav bg-text px-7 py-4 text-ink transition-colors duration-500 hover:bg-champagne">
+            <Link href="/#contact" className="t-nav btn-gold px-7 py-4">
               Discuss your project
             </Link>
             <p className="t-eyebrow text-muted">

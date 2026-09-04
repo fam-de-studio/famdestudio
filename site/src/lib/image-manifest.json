@@ -1,0 +1,310 @@
+{
+  "aeterna-perfume": {
+    "hash": "4bebb5a5",
+    "widths": [
+      480,
+      768,
+      1080,
+      1440,
+      1920
+    ],
+    "width": 1920,
+    "height": 1080
+  },
+  "chocolate-packaging": {
+    "hash": "1aea8c88",
+    "widths": [
+      480,
+      768,
+      1080,
+      1440,
+      1600
+    ],
+    "width": 1600,
+    "height": 1200
+  },
+  "deboss-close-up": {
+    "hash": "bbffef76",
+    "widths": [
+      480,
+      768,
+      1080,
+      1440,
+      1600
+    ],
+    "width": 1600,
+    "height": 1200
+  },
+  "drip-off-uv": {
+    "hash": "bfb57185",
+    "widths": [
+      480,
+      768,
+      818
+    ],
+    "width": 818,
+    "height": 768
+  },
+  "emboss-close-up": {
+    "hash": "b1a5ca48",
+    "widths": [
+      480,
+      768,
+      1080,
+      1440,
+      1600
+    ],
+    "width": 1600,
+    "height": 1200
+  },
+  "fam-de-studio-01": {
+    "hash": "8e4e78fd",
+    "widths": [
+      480,
+      768,
+      1080,
+      1440,
+      1600
+    ],
+    "width": 1600,
+    "height": 1200
+  },
+  "fam-de-studio-02": {
+    "hash": "2977031a",
+    "widths": [
+      480,
+      768,
+      1080,
+      1440,
+      1600
+    ],
+    "width": 1600,
+    "height": 1200
+  },
+  "folding-carton-collection-01": {
+    "hash": "551b5d99",
+    "widths": [
+      480,
+      768,
+      1080,
+      1440,
+      1600
+    ],
+    "width": 1600,
+    "height": 1200
+  },
+  "folding-carton-collection-02": {
+    "hash": "76457dfd",
+    "widths": [
+      480,
+      768,
+      1080,
+      1440,
+      1600
+    ],
+    "width": 1600,
+    "height": 1200
+  },
+  "hero-01": {
+    "hash": "9127c584",
+    "widths": [
+      480,
+      768,
+      1080,
+      1440,
+      1788
+    ],
+    "width": 1788,
+    "height": 1006
+  },
+  "hero-02": {
+    "hash": "ade6c285",
+    "widths": [
+      480,
+      768,
+      1080,
+      1376
+    ],
+    "width": 1376,
+    "height": 768
+  },
+  "hero-03": {
+    "hash": "3fe820c6",
+    "widths": [
+      480,
+      768,
+      1080,
+      1376
+    ],
+    "width": 1376,
+    "height": 768
+  },
+  "hot-foil-and-spot-uv": {
+    "hash": "b422b5d6",
+    "widths": [
+      480,
+      768,
+      1080,
+      1440,
+      1600
+    ],
+    "width": 1600,
+    "height": 1200
+  },
+  "hot-foil-close-up": {
+    "hash": "7cbabeb6",
+    "widths": [
+      480,
+      768,
+      1080,
+      1440,
+      1600
+    ],
+    "width": 1600,
+    "height": 1200
+  },
+  "jewellery-rigid-box": {
+    "hash": "9e7ebd52",
+    "widths": [
+      480,
+      768,
+      1080,
+      1440,
+      1600
+    ],
+    "width": 1600,
+    "height": 1200
+  },
+  "luxury-cosmetic-cartons": {
+    "hash": "4a64da7a",
+    "widths": [
+      480,
+      768,
+      1080,
+      1440,
+      1600
+    ],
+    "width": 1600,
+    "height": 1200
+  },
+  "luxury-gift-box-01": {
+    "hash": "2ce99666",
+    "widths": [
+      480,
+      768,
+      1080,
+      1440,
+      1600
+    ],
+    "width": 1600,
+    "height": 1200
+  },
+  "luxury-gift-box-02": {
+    "hash": "17db2c21",
+    "widths": [
+      480,
+      768,
+      1080,
+      1440,
+      1600
+    ],
+    "width": 1600,
+    "height": 1200
+  },
+  "luxury-perfume-box-01": {
+    "hash": "4153aae6",
+    "widths": [
+      480,
+      768,
+      1080,
+      1440,
+      1600
+    ],
+    "width": 1600,
+    "height": 1200
+  },
+  "luxury-perfume-box-02": {
+    "hash": "7054c655",
+    "widths": [
+      480,
+      768,
+      1080,
+      1440,
+      1600
+    ],
+    "width": 1600,
+    "height": 1200
+  },
+  "magnetic-box": {
+    "hash": "f791eacd",
+    "widths": [
+      480,
+      768,
+      1080,
+      1440,
+      1600
+    ],
+    "width": 1600,
+    "height": 1200
+  },
+  "metalized-printing": {
+    "hash": "afef7e94",
+    "widths": [
+      480,
+      768,
+      1080,
+      1440,
+      1600
+    ],
+    "width": 1600,
+    "height": 1200
+  },
+  "rigid-box-corner-detail": {
+    "hash": "be4668a5",
+    "widths": [
+      480,
+      768,
+      1080,
+      1440,
+      1600
+    ],
+    "width": 1600,
+    "height": 1200
+  },
+  "rigid-box": {
+    "hash": "0e35bb95",
+    "widths": [
+      480,
+      768,
+      1080,
+      1440,
+      1600
+    ],
+    "width": 1600,
+    "height": 1200
+  },
+  "spot-uv-close-up": {
+    "hash": "5a4a15e2",
+    "widths": [
+      480,
+      768,
+      1080,
+      1440,
+      1600
+    ],
+    "width": 1600,
+    "height": 1200
+  },
+  "textured-uv": {
+    "hash": "bb51d299",
+    "widths": [
+      480,
+      768,
+      1080,
+      1440,
+      1600
+    ],
+    "width": 1600,
+    "height": 1200
+  }
+}

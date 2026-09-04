@@ -44,7 +44,7 @@ export function Hero() {
             Print <span className="mx-2 text-champagne">·</span> Finishing
           </p>
           <div className="reveal is-in mt-10 flex flex-wrap gap-4" style={{ ["--i" as string]: 5 }}>
-            <Link href="/#work" className="t-nav bg-text px-7 py-4 text-ink transition-colors duration-500 hover:bg-champagne">
+            <Link href="/#work" className="t-nav btn-gold px-7 py-4">
               Explore our work
             </Link>
             <Link

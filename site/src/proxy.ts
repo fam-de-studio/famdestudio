@@ -28,5 +28,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/_next/image", "/_next/static/media/:path*", "/og.jpg"],
+  matcher: ["/_next/image", "/_next/static/media/:path*", "/img/:path*", "/og.jpg"],
 };

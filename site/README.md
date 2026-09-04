@@ -19,7 +19,7 @@ npm start
 | Projects / case studies (text + images) | `src/content/projects.ts` |
 | The nine finishing categories | `src/content/finishes.ts` |
 | Expertise columns, process steps, timeline, tools, form options | `src/content/studio.ts` |
-| Images | `src/images/` (imported statically so Next generates sizes, AVIF/WebP and blur placeholders) |
+| Images | `src/images/` (source files; `npm run images` pre-encodes responsive WebP variants into `public/img/`, runs automatically before `dev` and `build`) |
 | Social-share image | `public/og.jpg` (1376×768) |
 | Design tokens (colours, type scale, motion) | `src/app/globals.css` |
 
@@ -40,6 +40,10 @@ The form posts to the built-in `/api/inquire` route:
 ## Image protection
 
 Casual copying is blocked in several layers: images ignore pointer events, the right-click menu is disabled site-wide (so "Save as…" and "Save image as…" are not reachable), Ctrl/Cmd+S is swallowed, drag-out and long-press saving are disabled, printing or "Save as PDF" withholds pictures, and `src/proxy.ts` returns 403 when an optimised image URL is opened directly in a tab or embedded from another site. Social crawlers (no `Sec-Fetch-*` headers) can still read `og.jpg`. The browser's own menu ("Save page as…"), screenshots and developer tools cannot be prevented by any website; this is a deterrent, not DRM.
+
+## Images
+
+Nothing is encoded at request time. `scripts/optimize-images.mjs` turns every file in `src/images/` into WebP variants at 480 to 1920 px (quality 82, hero 86) under `public/img/`, named with a content hash so they are cached for a year. `src/lib/image-loader.ts` maps `next/image` requests to those files. Drop a new image into `src/images/`, run `npm run images` (or just `npm run dev`), and it is ready. `public/img/` is git-ignored and rebuilt on deploy.
 
 ## Deploy
 

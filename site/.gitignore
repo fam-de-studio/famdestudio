@@ -42,3 +42,6 @@ next-env.d.ts
 
 # keep the form endpoint template
 !.env.example
+
+# generated responsive images (npm run images)
+/public/img/
