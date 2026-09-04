@@ -5,6 +5,7 @@ import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { Cursor } from "@/components/site/Cursor";
 import { ScrollProgress } from "@/components/site/ScrollProgress";
+import { ImageGuard } from "@/components/site/ImageGuard";
 import "./globals.css";
 
 const instrument = Instrument_Serif({
@@ -73,6 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main id="main">{children}</main>
         <Footer />
         <Cursor />
+        <ImageGuard />
       </body>
     </html>
   );

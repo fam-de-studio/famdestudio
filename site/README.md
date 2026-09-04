@@ -37,6 +37,10 @@ The form posts to the built-in `/api/inquire` route:
 - **Without it**, the route answers 503 and the form opens the visitor's mail app with everything pre-filled, so no request is lost before email is configured.
 - Set `NEXT_PUBLIC_FORM_ENDPOINT` to post to Formspree, Web3Forms or similar instead.
 
+## Image protection
+
+Casual copying is blocked in three layers: images ignore pointer events (no "Save image as…" in the context menu), drag-out and long-press saving are disabled, and `src/proxy.ts` returns 403 when an optimised image URL is opened directly in a tab or embedded from another site. Social crawlers (no `Sec-Fetch-*` headers) can still read `og.jpg`. Screenshots and developer tools cannot be prevented by any website; this is a deterrent, not DRM.
+
 ## Deploy
 
 Any Node host works (Vercel, Netlify, a VPS with `npm start`). Image optimisation uses Next's built-in loader, so a Node runtime is expected rather than a purely static export.

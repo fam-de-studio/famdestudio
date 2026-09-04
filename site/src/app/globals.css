@@ -63,6 +63,16 @@ body {
   overflow-x: clip;
 }
 
+/* ---------- Image protection (deterrent, not DRM) ---------- */
+img,
+picture {
+  pointer-events: none; /* right-click lands on the wrapper: no "Save image as…" */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none; /* iOS long-press save sheet */
+}
+
 ::selection {
   background: var(--color-champagne);
   color: var(--color-ink);
