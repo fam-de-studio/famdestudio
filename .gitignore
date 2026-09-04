@@ -18,3 +18,7 @@ Thumbs.db
 
 # vercel
 .vercel
+
+# raw source assets (copies used by the site live in site/src/images)
+Extra/
+Final Images/
