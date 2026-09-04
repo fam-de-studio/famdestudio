@@ -73,6 +73,16 @@ picture {
   -webkit-touch-callout: none; /* iOS long-press save sheet */
 }
 
+/* Print / "Save as PDF": pictures are withheld, text still prints */
+@media print {
+  img,
+  picture,
+  .hero-img,
+  .marquee {
+    visibility: hidden !important;
+  }
+}
+
 ::selection {
   background: var(--color-champagne);
   color: var(--color-ink);

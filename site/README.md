@@ -39,7 +39,7 @@ The form posts to the built-in `/api/inquire` route:
 
 ## Image protection
 
-Casual copying is blocked in three layers: images ignore pointer events (no "Save image as…" in the context menu), drag-out and long-press saving are disabled, and `src/proxy.ts` returns 403 when an optimised image URL is opened directly in a tab or embedded from another site. Social crawlers (no `Sec-Fetch-*` headers) can still read `og.jpg`. Screenshots and developer tools cannot be prevented by any website; this is a deterrent, not DRM.
+Casual copying is blocked in several layers: images ignore pointer events, the right-click menu is disabled site-wide (so "Save as…" and "Save image as…" are not reachable), Ctrl/Cmd+S is swallowed, drag-out and long-press saving are disabled, printing or "Save as PDF" withholds pictures, and `src/proxy.ts` returns 403 when an optimised image URL is opened directly in a tab or embedded from another site. Social crawlers (no `Sec-Fetch-*` headers) can still read `og.jpg`. The browser's own menu ("Save page as…"), screenshots and developer tools cannot be prevented by any website; this is a deterrent, not DRM.
 
 ## Deploy
 
