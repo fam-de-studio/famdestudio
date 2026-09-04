@@ -15,7 +15,7 @@ const base =
   "t-nav inline-flex items-center justify-center gap-3 whitespace-nowrap transition-colors duration-500 disabled:opacity-50";
 
 const styles = {
-  solid: "btn-gold px-7 py-4",
+  solid: "btn-yellow px-7 py-4",
   outline:
     "px-7 py-4 border border-line-strong text-text hover:border-champagne hover:text-champagne [.surface-ivory_&]:border-line-d-strong [.surface-ivory_&]:text-text-d [.surface-ivory_&]:hover:border-text-d",
   link: "link-line",
