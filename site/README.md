@@ -45,6 +45,20 @@ Casual copying is blocked in several layers: images ignore pointer events, the r
 
 Nothing is encoded at request time. `scripts/optimize-images.mjs` turns every file in `src/images/` into WebP variants at 480 to 1920 px (quality 82, hero 86) under `public/img/`, named with a content hash so they are cached for a year. `src/lib/image-loader.ts` maps `next/image` requests to those files. Drop a new image into `src/images/`, run `npm run images` (or just `npm run dev`), and it is ready. `public/img/` is git-ignored and rebuilt on deploy.
 
+## Press Docket (private quoting tool)
+
+`/admin/docket` is the studio's quoting system, ported from the Apps Script version: the same costing engine (`src/lib/docket/engine.ts`, parity-tested by `scripts/test-docket-engine.mjs`), the same quotation and proforma invoice documents, and the same Google Sheet as storage (six tabs, same columns), read and written through the Sheets API with a service account. It is not linked from the public site and is `noindex`.
+
+Setup, once:
+
+1. **Google sign-in**: in Google Cloud, create an OAuth client (Web application) with redirect URI `https://YOUR-DOMAIN/api/auth/callback/google`. Set `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `AUTH_SECRET` and `ADMIN_EMAILS` (only listed accounts can sign in).
+2. **Sheet access**: in the same project enable the Google Sheets API, create a service account with a JSON key, and share the spreadsheet with the service-account email as Editor. Set `DOCKET_SHEET_ID`, `DOCKET_SA_EMAIL`, `DOCKET_SA_KEY`.
+3. Deploy. The existing quotes, rates, clients and settings appear unchanged; the old Apps Script web app can stay deployed or be retired.
+
+Local development without Google credentials: put `ADMIN_DEV_BYPASS=1` in `.env.local`; the tool then stores in `.data/docket.json` (git-ignored). The bypass never works in production builds.
+
+Engine test: `node scripts/test-docket-engine.mjs`.
+
 ## Deploy
 
 Any Node host works (Vercel, Netlify, a VPS with `npm start`). Image optimisation uses Next's built-in loader, so a Node runtime is expected rather than a purely static export.

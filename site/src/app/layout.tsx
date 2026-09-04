@@ -1,11 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Instrument_Serif, Manrope } from "next/font/google";
 import { site } from "@/content/site";
-import { Nav } from "@/components/site/Nav";
-import { Footer } from "@/components/site/Footer";
-import { Cursor } from "@/components/site/Cursor";
-import { ScrollProgress } from "@/components/site/ScrollProgress";
-import { ImageGuard } from "@/components/site/ImageGuard";
 import "./globals.css";
 
 const instrument = Instrument_Serif({
@@ -17,7 +12,7 @@ const instrument = Instrument_Serif({
 });
 
 const manrope = Manrope({
-  weight: ["300", "400", "500", "600"],
+  weight: ["300", "400", "500", "600", "700"],
   subsets: ["latin"],
   variable: "--font-manrope",
   display: "swap",
@@ -59,23 +54,11 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+/** Root: fonts, metadata, global CSS. Chrome (nav, footer, cursor) lives in the (site) group. */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${instrument.variable} ${manrope.variable}`}>
-      <body className="min-h-dvh bg-ink text-text">
-        <a
-          href="#main"
-          className="t-nav sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:bg-text focus:px-4 focus:py-3 focus:text-ink"
-        >
-          Skip to content
-        </a>
-        <ScrollProgress />
-        <Nav />
-        <main id="main">{children}</main>
-        <Footer />
-        <Cursor />
-        <ImageGuard />
-      </body>
+      <body className="min-h-dvh bg-ink text-text">{children}</body>
     </html>
   );
 }
