@@ -37,7 +37,9 @@ var FIELDS = [
   'ups', 'gross', 'cost_total', 'cost_pc', 'exw', 'freight', 'ddp', 'ddp_pc', 'profit',
   'fx_used', 'margin_used',
   /* v2 broker columns — appended at the end so old rows stay aligned */
-  'repeat', 'incoterm', 'duty_pct', 'vat_pct', 'overrides', 'vendors', 'cbm_override'
+  'repeat', 'incoterm', 'duty_pct', 'vat_pct', 'overrides', 'vendors', 'cbm_override',
+  /* v3 estimator columns */
+  'tuck', 'pieces', 'grain'
 ];
 
 /* Append any missing FIELDS columns to the Quotes header. New columns go at
@@ -112,15 +114,18 @@ function setupStorage() {
   ]);
 
   kvSheet_(ss, TAB.RATES, ['key', 'value'], [
-    ['plate', 1200], ['print', 900], ['proof', 3500],
+    ['plate', 1200], ['print', 900], ['print_min', 1000], ['proof', 3500],
     ['uv_setup', 3000], ['uv_run', 3.5],
     ['foil_block', 45], ['foil_run', 2.5],
     ['emb_block', 60], ['emb_run', 2],
-    ['dc_run', 1800], ['paste', 2.5], ['pack', 1.5],
+    ['dc_run', 1800], ['dc_min', 2500], ['paste', 2.5], ['pack', 1.5],
+    ['carton_pkr', 220], ['carton_cbm', 0.06],
+    ['rigid_kg', 260], ['rigid_gsm', 1200], ['rigid_make', 45],
+    ['x_window', 6], ['x_ribbon', 8], ['x_magnet', 25], ['x_edge', 10], ['x_braille', 4],
     ['waste', 0.07], ['setup_sheets', 200],
     ['fx', 285], ['margin', 0.4],
     ['fr_dhl', 9], ['fr_air', 5.5], ['fr_sea', 180],
-    ['docs', 120], ['bank_pct', 0.02]
+    ['docs', 120], ['ins_pct', 0.005], ['ddp_fee', 25], ['bank_pct', 0.02]
   ]);
 
   tableSheet_(ss, TAB.BOARDS, ['name', 'pkr_per_kg', 'note'], [
@@ -136,7 +141,7 @@ function setupStorage() {
   tableSheet_(ss, TAB.FILMS, ['name', 'pkr_per_sqin', 'note'], [
     ['None', 0, 'No lamination'],
     ['Gloss BOPP', 0.012, 'Cheapest, high shine'],
-    ['Matte BOPP', 0.015, 'Premium base — required under drip-off'],
+    ['Matte BOPP', 0.015, 'Premium base — the usual base for spot UV'],
     ['Soft Touch / Velvet', 0.045, 'Luxury feel — best upsell'],
     ['Metalized / MetPET', 0.055, 'Mirror metallic base'],
     ['Holographic', 0.065, 'Rainbow effect — vape, confectionery'],
@@ -323,7 +328,7 @@ function saveQuote(job) {
     try {
       var set = kvRead_(TAB.SET);
       var n = Number(set.quote_next || 1);
-      job.quote_no = String(set.quote_prefix || 'QT-') + ('000' + n).slice(-3);
+      job.quote_no = prefixNow_(set.quote_prefix || 'QT-') + padNo_(n);
       set.quote_next = n + 1;
       kvWrite_(TAB.SET, set);
     } finally { lock.releaseLock(); }
@@ -348,13 +353,25 @@ function saveQuote(job) {
   return { quote_no: job.quote_no, updated: idx >= 0, quotes: listQuotes() };
 }
 
+/* Document numbers: at least three digits, never truncated after 999.
+   A prefix may carry {yyyy} or {yy}, filled with the current year. */
+function padNo_(x) {
+  var s = String(Math.max(1, Math.round(Number(x) || 1)));
+  while (s.length < 3) s = '0' + s;
+  return s;
+}
+function prefixNow_(p) {
+  var y = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy');
+  return String(p || '').replace(/\{yyyy\}/g, y).replace(/\{yy\}/g, y.slice(-2));
+}
+
 function nextPiNumber() {
   var lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
     var set = kvRead_(TAB.SET);
     var n = Number(set.pi_next || 1);
-    var no = String(set.pi_prefix || 'PI-') + ('000' + n).slice(-3);
+    var no = prefixNow_(set.pi_prefix || 'PI-') + padNo_(n);
     set.pi_next = n + 1;
     kvWrite_(TAB.SET, set);
     return no;

@@ -397,34 +397,51 @@ var LIVE = (typeof google !== 'undefined' && google.script && google.script.run)
 var LS = 'press-docket-demo-v1';
 
 var DEFAULT_RATES = {
-  plate:1200, print:900, proof:3500, uv_setup:3000, uv_run:3.5,
+  plate:1200, print:900, print_min:1000, proof:3500, uv_setup:3000, uv_run:3.5,
   foil_block:45, foil_run:2.5, emb_block:60, emb_run:2,
-  dc_run:1800, paste:2.5, pack:1.5,
-  waste:0.07, setup_sheets:200, overhead:0.08,
-  fx:285, margin:0.4, fr_dhl:9, fr_air:5.5, fr_sea:180, docs:120, bank_pct:0.02
+  dc_run:1800, dc_min:2500, paste:2.5, pack:1.5,
+  carton_pkr:220, carton_cbm:0.06,
+  rigid_kg:260, rigid_gsm:1200, rigid_make:45,
+  x_window:6, x_ribbon:8, x_magnet:25, x_edge:10, x_braille:4,
+  waste:0.07, setup_sheets:200,
+  fx:285, margin:0.4, fr_dhl:9, fr_air:5.5, fr_sea:180, docs:120,
+  ins_pct:0.005, ddp_fee:25, bank_pct:0.02
 };
 var RATE_META = [
   ['plate','Plate cost, per plate','PKR each'],
   ['print','Printing, per 1,000 impressions per colour','PKR'],
+  ['print_min','Printing minimum, impressions per colour','sheets — charged even on tiny runs'],
   ['proof','Digital proof / dummy sample','PKR per job'],
   ['uv_setup','Spot UV / drip-off screen or plate','PKR per job'],
   ['uv_run','Spot UV / drip-off running rate','PKR per sheet'],
-  ['foil_block','Hot foil block making','PKR per sq.in'],
+  ['foil_block','Hot foil block making','PKR per sq.in of the full sheet block'],
   ['foil_run','Hot foil running rate incl. foil','PKR per sheet'],
-  ['emb_block','Emboss / deboss block making','PKR per sq.in'],
+  ['emb_block','Emboss / deboss block making','PKR per sq.in of the full sheet block'],
   ['emb_run','Emboss / deboss running rate','PKR per sheet'],
   ['dc_run','Die cutting running rate','PKR per 1,000 sheets'],
-  ['paste','Pasting / gluing','PKR per piece'],
+  ['dc_min','Die cutting minimum','PKR per job'],
+  ['paste','Pasting / gluing (folding cartons)','PKR per piece'],
   ['pack','Packing, labour & inspection','PKR per piece'],
+  ['carton_pkr','Export shipper carton (5-ply)','PKR per carton'],
+  ['carton_cbm','Shipper carton volume','CBM each, e.g. 0.06 = 50 × 40 × 30 cm'],
+  ['rigid_kg','Greyboard for rigid boxes','PKR per kg'],
+  ['rigid_gsm','Greyboard weight','gsm — 1.5 mm ≈ 1,050 · 2 mm ≈ 1,300'],
+  ['rigid_make','Rigid box making, hand assembly','PKR per box'],
+  ['x_window','Extra — window patch (film + patching)','PKR per piece'],
+  ['x_ribbon','Extra — ribbon pull','PKR per piece'],
+  ['x_magnet','Extra — magnetic closure (pair of magnets)','PKR per piece'],
+  ['x_edge','Extra — edge painting','PKR per piece'],
+  ['x_braille','Extra — braille panel','PKR per piece'],
   ['waste','Wastage allowance','fraction, e.g. 0.07 = 7%'],
   ['setup_sheets','Make-ready / setup sheets','sheets per job'],
-  ['overhead','Factory overhead','fraction of direct cost'],
   ['fx','USD / PKR rate','update before every quote'],
   ['margin','Target gross margin','fraction, e.g. 0.4 = 40%'],
-  ['fr_dhl','DHL / FedEx express','USD per kg'],
-  ['fr_air','Air freight, consolidated','USD per kg'],
-  ['fr_sea','Sea freight LCL','USD per CBM'],
+  ['fr_dhl','DHL / FedEx express','USD per kg — actual or volumetric ÷ 5000'],
+  ['fr_air','Air freight, consolidated','USD per kg — actual or volumetric ÷ 6000'],
+  ['fr_sea','Sea freight LCL','USD per CBM, 1 CBM minimum'],
   ['docs','Export docs, clearance & handling','USD per shipment'],
+  ['ins_pct','Transit insurance','fraction of goods + freight, e.g. 0.005 = 0.5%'],
+  ['ddp_fee','Courier duties-paid (DTP) admin fee','USD per shipment, DDP only'],
   ['bank_pct','Bank / payment charges','fraction of invoice value']
 ];
 var DEFAULT_BOARDS = [
@@ -439,7 +456,7 @@ var DEFAULT_BOARDS = [
 var DEFAULT_FILMS = [
   {name:'None', pkr_per_sqin:0, note:'No lamination'},
   {name:'Gloss BOPP', pkr_per_sqin:0.012, note:'Cheapest, high shine'},
-  {name:'Matte BOPP', pkr_per_sqin:0.015, note:'Premium base — required under drip-off'},
+  {name:'Matte BOPP', pkr_per_sqin:0.015, note:'Premium base — the usual base for spot UV'},
   {name:'Soft Touch / Velvet', pkr_per_sqin:0.045, note:'Luxury feel — best upsell'},
   {name:'Metalized / MetPET', pkr_per_sqin:0.055, note:'Mirror metallic base'},
   {name:'Holographic', pkr_per_sqin:0.065, note:'Rainbow effect — vape, confectionery'},
@@ -465,8 +482,8 @@ function blankJob(){
     quote_no:'', date:todayISO(), status:'Draft', pi_no:'', po_ref:'',
     client_name:'', client_contact:'', client_country:'', client_email:'', client_address:'',
     product:'', style:'Straight Tuck End (STE)', qty:5000, repeat:'No',
-    len:45, wid:45, hgt:120, flap:15, flat_w:195, flat_h:210,
-    board:'SBS / Ivory Board', gsm:350, psw:635, psh:965, trim_w:10, trim_h:17,
+    len:45, wid:45, hgt:120, flap:15, tuck:18, pieces:1, flat_w:195, flat_h:246,
+    board:'SBS / Ivory Board', gsm:350, psw:635, psh:965, trim_w:10, trim_h:25, grain:'Long',
     col_f:5, col_b:0,
     lam:'Soft Touch / Velvet', uv:'Yes', foil:'Yes', foil_area:6, emb:'No', emb_area:4,
     other_pkr:0, extras:[],
@@ -475,7 +492,7 @@ function blankJob(){
     incoterm:'DAP', duty_pct:0, vat_pct:0,
     qty2:10000, unit2:0, unit2_auto:'Yes',
     validity:'15 days', lead_time:'12–15', transit:'6–9',
-    hs_code:'4819.2000', cartons:6, notes:'',
+    hs_code:'4819.2000', cartons:0, notes:'',
     overrides:{}, vendors:{}
   };
 }
@@ -503,10 +520,14 @@ function usd(v, dp){
   dp = dp === undefined ? 2 : dp;
   return '$' + n(v).toLocaleString('en-US',{minimumFractionDigits:dp, maximumFractionDigits:dp});
 }
-function unitStr(v){
-  var s = usd(v, 4);
-  if(s.indexOf('.') > -1) s = s.replace(/0+$/,'').replace(/\.$/,'');
-  return s;
+/* Four decimals for a unit price, but never fewer than two: $0.40, not $0.4. */
+function unitStr(v){ return usd(v, 4).replace(/(\.\d\d)0+$/, '$1'); }
+/* Document numbers: at least three digits, never truncated after 999.
+   A prefix may carry {yyyy} or {yy}, filled with the current year. */
+function padNo(x){ x = String(Math.max(1, Math.round(n(x)))); while(x.length < 3) x = '0' + x; return x; }
+function prefixNow(p){
+  var y = String(new Date().getFullYear());
+  return String(p || '').replace(/\{yyyy\}/g, y).replace(/\{yy\}/g, y.slice(-2));
 }
 function pkr(v){ return n(v).toLocaleString('en-US',{maximumFractionDigits:0}); }
 
@@ -516,47 +537,107 @@ function pkr(v){ return n(v).toLocaleString('en-US',{maximumFractionDigits:0}); 
 /* ENGINE-START */
 function n_(v){ var x = parseFloat(v); return isFinite(x) ? x : 0; }
 function rateOf(ctx, k, fb){ var v = ctx.rates[k]; return (v === undefined || v === '' || v === null) ? n_(fb) : n_(v); }
-function boardRate(ctx, name){ for(var i=0;i<ctx.boards.length;i++) if(ctx.boards[i].name === name) return n_(ctx.boards[i].pkr_per_kg); return 0; }
-function filmRate(ctx, name){ for(var i=0;i<ctx.films.length;i++) if(ctx.films[i].name === name) return n_(ctx.films[i].pkr_per_sqin); return 0; }
+/* null = not in the rates list. The caller must warn — a renamed board must
+   never quietly cost zero. */
+function boardRate(ctx, name){ for(var i=0;i<ctx.boards.length;i++) if(ctx.boards[i].name === name) return n_(ctx.boards[i].pkr_per_kg); return null; }
+function filmRate(ctx, name){ if(!name || name === 'None') return 0; for(var i=0;i<ctx.films.length;i++) if(ctx.films[i].name === name) return n_(ctx.films[i].pkr_per_sqin); return null; }
 
+var RIGID_STYLES = ['Rigid Two-Piece','Rigid Magnetic','Drawer / Matchbox','Rigid Tube'];
+function isRigid(job){ return RIGID_STYLES.indexOf(job.style) > -1; }
+var EXTRA_RATE_KEY = {'Window patch':'x_window', 'Ribbon pull':'x_ribbon', 'Magnetic closure':'x_magnet',
+                      'Edge painting':'x_edge', 'Braille panel':'x_braille'};
+
+/* Imposition honours grain. The carton height (flat height) must run with the
+   sheet grain so the vertical body creases fold clean on heavy board.
+   grain 'Long'  = grain along the sheet height  -> blank stands upright
+   grain 'Short' = grain along the sheet width   -> blank lies sideways
+   grain 'Free'  = ignore grain, take the most ups (proofs, cheap board). */
 function imposition(job){
   var ew = n_(job.psw) - n_(job.trim_w), eh = n_(job.psh) - n_(job.trim_h);
   var fw = n_(job.flat_w), fh = n_(job.flat_h);
-  if(fw <= 0 || fh <= 0 || ew <= 0 || eh <= 0) return {ew:ew, eh:eh, ups:0};
-  var a = Math.floor(ew/fw) * Math.floor(eh/fh);
-  var b = Math.floor(ew/fh) * Math.floor(eh/fw);
-  return {ew:ew, eh:eh, ups:Math.max(a,b)};
+  if(fw <= 0 || fh <= 0 || ew <= 0 || eh <= 0) return {ew:ew, eh:eh, ups:0, alt:0, orient:'-'};
+  var up = Math.floor(ew/fw) * Math.floor(eh/fh);
+  var side = Math.floor(ew/fh) * Math.floor(eh/fw);
+  var g = job.grain || 'Free';
+  if(g === 'Long')  return {ew:ew, eh:eh, ups:up,   alt:side, orient:'upright'};
+  if(g === 'Short') return {ew:ew, eh:eh, ups:side, alt:up,   orient:'sideways'};
+  return {ew:ew, eh:eh, ups:Math.max(up, side), alt:Math.min(up, side), orient:up >= side ? 'upright' : 'sideways'};
 }
 
 /* Full recost at any quantity. */
 function costForQty(job, ctx, qty){
+  var warnings = [];
   var imp = imposition(job), ups = imp.ups;
   if(ups <= 0 || qty <= 0){
-    return {ups:0, gross:0, parts:{}, direct:0, total:0, perPc:0, exw:0, exwPc:0,
-            freight:0, bankFee:0, cbmAuto:0, dap:0, duty:0, vat:0, ddp:0, ddpPc:0, profit:0, kgTotal:0, boxKg:0};
+    if(ups <= 0) warnings.push('The dieline does not fit this press sheet — check the flat size, or set grain to Free.');
+    return {ups:0, gross:0, runSheets:0, parts:{}, direct:0, total:0, perPc:0, exw:0, exwPc:0,
+            freight:0, insurance:0, bankFee:0, cbmAuto:0, cbmUsed:0, cartons:0, chargeKg:0,
+            dap:0, duty:0, vat:0, ddpFee:0, ddp:0, ddpPc:0, profit:0, kgTotal:0, boxKg:0, warnings:warnings};
   }
-  var net = Math.ceil(qty/ups);
-  var gross = Math.ceil(net * (1 + rateOf(ctx,'waste',0.07))) + rateOf(ctx,'setup_sheets',200);
+  var rigid = isRigid(job);
+  var pieces = Math.max(1, Math.round(n_(job.pieces)) || 1);   /* printed blanks per box: 2 for a base + lid wrap */
+  var net = Math.ceil(qty * pieces / ups);
+  var runSheets = Math.ceil(net * (1 + rateOf(ctx,'waste',0.07)));
+  var gross = runSheets + rateOf(ctx,'setup_sheets',200);
   var kgSheet = (n_(job.psw)*n_(job.psh)/1e6) * n_(job.gsm) / 1000;
   var area = (n_(job.psw)/25.4) * (n_(job.psh)/25.4);
   var plates = n_(job.col_f) + n_(job.col_b);
 
+  var bRate = boardRate(ctx, job.board);
+  if(bRate === null){ warnings.push('Board "' + job.board + '" is not in the Rates list — board cost is ZERO.'); bRate = 0; }
+  var fRate = filmRate(ctx, job.lam);
+  if(fRate === null){ warnings.push('Film "' + job.lam + '" is not in the Rates list — lamination cost is ZERO.'); fRate = 0; }
+
   /* Repeat orders reuse existing tooling: plates, die, blocks, setups and the
      proof are already made and must not be charged again. Running charges stay. */
   var rep = job.repeat === 'Yes';
+
+  /* Foil and emboss blocks are made for the whole imposed sheet: area per box x ups. */
+  var foilBlock = n_(job.foil_area) * ups * rateOf(ctx,'foil_block',45);
+  var embBlock  = n_(job.emb_area)  * ups * rateOf(ctx,'emb_block',60);
+
+  /* Extras carry a real per-piece cost — nothing on the document is free. */
+  var extrasPc = 0;
+  (job.extras || []).forEach(function(e){ var k = EXTRA_RATE_KEY[e]; if(k) extrasPc += rateOf(ctx, k, 0); });
+
+  /* Rigid boxes: greyboard core (base + lid ~ 2 x (LW + 2(L+W)H)) plus hand assembly. */
+  var L = n_(job.len), W = n_(job.wid), H = n_(job.hgt);
+  var coreKg = rigid ? (2 * (L*W + 2*(L+W)*H) / 1e6) * rateOf(ctx,'rigid_gsm',1200) / 1000 : 0;
+
+  /* Weight & volume, needed for the shipper-carton count before the cost lines. */
+  var wrapKg = (n_(job.flat_w) * n_(job.flat_h) / 1e6) * n_(job.gsm) / 1000 * pieces;
+  var boxKg = wrapKg + coreKg;
+  var grossKg = boxKg * qty * (1 + n_(job.pack_pct));
+  /* Flat-pack volume: flat area x board thickness (~gsm/800000 m; 350gsm ~ 0.44mm).
+     Rigid boxes ship assembled: outer L x W x H with ~3 mm walls. Both scaled by
+     the packing allowance. A typed override wins for odd cargo. */
+  var cbmAuto = rigid
+    ? ((L+6)/1000) * ((W+6)/1000) * ((H+6)/1000) * qty * (1 + n_(job.pack_pct))
+    : (n_(job.flat_w)/1000) * (n_(job.flat_h)/1000) * (n_(job.gsm)/800000) * pieces * qty * (1 + n_(job.pack_pct));
+  var cbmUsed = (job.cbm_override !== undefined && job.cbm_override !== null && job.cbm_override !== '')
+    ? n_(job.cbm_override) : cbmAuto;
+  var cartonCbm = rateOf(ctx,'carton_cbm',0.06);
+  var cartons = n_(job.cartons) > 0 ? Math.round(n_(job.cartons)) : (cartonCbm > 0 ? Math.ceil(cbmUsed / cartonCbm) : 0);
+
+  var printSheets = Math.max(gross, rateOf(ctx,'print_min',1000));   /* press minimum per colour */
   var c = {
-    board: gross * kgSheet * boardRate(ctx, job.board),
+    board: gross * kgSheet * bRate,
     plates: rep ? 0 : plates * rateOf(ctx,'plate',1200),
-    print: gross/1000 * rateOf(ctx,'print',900) * plates,
+    print: plates > 0 ? printSheets/1000 * rateOf(ctx,'print',900) * plates : 0,
     proof: rep ? 0 : rateOf(ctx,'proof',3500),
-    lam:   gross * area * filmRate(ctx, job.lam),
+    lam:   gross * area * fRate,
     uv:    job.uv === 'Yes' ? (rep ? 0 : rateOf(ctx,'uv_setup',3000)) + gross * rateOf(ctx,'uv_run',3.5) : 0,
-    foil:  job.foil === 'Yes' ? (rep ? 0 : n_(job.foil_area) * rateOf(ctx,'foil_block',45)) + gross * rateOf(ctx,'foil_run',2.5) : 0,
-    emb:   job.emb === 'Yes' ? (rep ? 0 : n_(job.emb_area) * rateOf(ctx,'emb_block',60)) + gross * rateOf(ctx,'emb_run',2) : 0,
+    foil:  job.foil === 'Yes' ? (rep ? 0 : foilBlock) + gross * rateOf(ctx,'foil_run',2.5) : 0,
+    emb:   job.emb === 'Yes' ? (rep ? 0 : embBlock) + gross * rateOf(ctx,'emb_run',2) : 0,
     die:   rep ? 0 : n_(job.die_cost),
-    dc:    gross/1000 * rateOf(ctx,'dc_run',1800),
-    paste: qty * rateOf(ctx,'paste',2.5),
+    /* only the run sheets reach the die cutter; press make-ready is discarded */
+    dc:    Math.max(runSheets/1000 * rateOf(ctx,'dc_run',1800), rateOf(ctx,'dc_min',2500)),
+    paste: rigid ? 0 : qty * rateOf(ctx,'paste',2.5),
+    core:  rigid ? coreKg * qty * rateOf(ctx,'rigid_kg',260) : 0,
+    make:  rigid ? qty * rateOf(ctx,'rigid_make',45) : 0,
+    extras: qty * extrasPc,
     pack:  qty * rateOf(ctx,'pack',1.5),
+    cartons: cartons * rateOf(ctx,'carton_pkr',220),
     other: n_(job.other_pkr),
     tr:    n_(job.local_tr)
   };
@@ -574,38 +655,38 @@ function costForQty(job, ctx, qty){
   var margin = rateOf(ctx,'margin',0.4), fx = rateOf(ctx,'fx',285);
   var exw = (margin >= 1 || fx <= 0) ? 0 : total / (1 - margin) / fx;
 
-  var boxKg = (n_(job.flat_w) * n_(job.flat_h) / 1e6) * n_(job.gsm) / 1000;
-  var grossKg = boxKg * qty * (1 + n_(job.pack_pct));
-  /* Flat-pack sea volume from the cargo itself: flat area x board thickness
-     (~ gsm/800000 m; 350gsm ~ 0.44mm), scaled by the same packing allowance
-     as weight. A typed override wins for odd cargo. */
-  var cbmAuto = (n_(job.flat_w)/1000) * (n_(job.flat_h)/1000) * (n_(job.gsm)/800000) * qty * (1 + n_(job.pack_pct));
-  var cbmUsed = (job.cbm_override !== undefined && job.cbm_override !== null && job.cbm_override !== '')
-    ? n_(job.cbm_override) : cbmAuto;
-  var freight = job.mode === 'Sea LCL' ? cbmUsed * rateOf(ctx,'fr_sea',180)
-              : job.mode === 'DHL Express' ? grossKg * rateOf(ctx,'fr_dhl',9)
-              : grossKg * rateOf(ctx,'fr_air',5.5);
+  /* Chargeable weight: courier and airline bill actual or volumetric, whichever is more. */
+  var sea = job.mode === 'Sea LCL', dhl = job.mode === 'DHL Express';
+  var chargeKg = sea ? grossKg : Math.max(grossKg, cbmUsed * 1e6 / (dhl ? 5000 : 6000));
+  var freight = sea ? Math.max(cbmUsed, 1) * rateOf(ctx,'fr_sea',180)
+              : dhl ? chargeKg * rateOf(ctx,'fr_dhl',9)
+              : chargeKg * rateOf(ctx,'fr_air',5.5);
   var docs = rateOf(ctx,'docs',120);
+  var insurance = (exw + freight) * rateOf(ctx,'ins_pct',0.005);
   /* The bank charges on the whole invoice, not just the goods. */
-  var bankFee = (exw + freight + docs) * rateOf(ctx,'bank_pct',0.02);
+  var bankFee = (exw + freight + docs + insurance) * rateOf(ctx,'bank_pct',0.02);
 
   /* DAP: delivered, duties unpaid — the buyer's courier collects any duty/VAT.
      DDP: we price destination duty (on CIF) and VAT (on CIF + duty) into the
-     quote, so "no further charges on arrival" is finally true. */
-  var dap = exw + freight + docs + bankFee;
-  var duty = 0, vat = 0;
+     quote, plus the courier's duties-paid handling fee, so "no further charges
+     on arrival" is finally true. */
+  var dap = exw + freight + docs + insurance + bankFee;
+  var duty = 0, vat = 0, ddpFee = 0;
   if(job.incoterm === 'DDP'){
-    duty = n_(job.duty_pct) * (exw + freight);
-    vat  = n_(job.vat_pct) * (exw + freight + duty);
+    var cif = exw + freight + insurance;
+    duty = n_(job.duty_pct) * cif;
+    vat  = n_(job.vat_pct) * (cif + duty);
+    ddpFee = rateOf(ctx,'ddp_fee',25);
   }
-  var landed = dap + duty + vat;
+  var landed = dap + duty + vat + ddpFee;
 
   return {
-    ups:ups, gross:gross, parts:c, direct:direct, total:total, perPc:total/qty,
-    exw:exw, exwPc:exw/qty, freight:freight, bankFee:bankFee, cbmAuto:cbmAuto,
-    dap:dap, duty:duty, vat:vat,
+    ups:ups, gross:gross, runSheets:runSheets, parts:c, direct:direct, total:total, perPc:total/qty,
+    exw:exw, exwPc:exw/qty, freight:freight, insurance:insurance, bankFee:bankFee,
+    cbmAuto:cbmAuto, cbmUsed:cbmUsed, cartons:cartons, chargeKg:chargeKg,
+    dap:dap, duty:duty, vat:vat, ddpFee:ddpFee,
     ddp:landed, ddpPc:landed/qty, profit:fx > 0 ? exw - total/fx : 0,
-    kgTotal:grossKg, boxKg:boxKg
+    kgTotal:grossKg, boxKg:boxKg, warnings:warnings
   };
 }
 
@@ -613,6 +694,7 @@ function computeCost(job, ctx){ return costForQty(job, ctx, n_(job.qty)); }
 /* ENGINE-END */
 
 function ctx_(){ return {rates: DB.rates, boards: DB.boards, films: DB.films}; }
+function rate(k){ return rateOf(ctx_(), k, DEFAULT_RATES[k]); }
 
 function calc(){
   var m = computeCost(job, ctx_());
@@ -651,11 +733,13 @@ var PANEL = [
       'Pillow Box','Gable Box','Window Carton','Rigid Two-Piece','Rigid Magnetic',
       'Drawer / Matchbox','Rigid Tube','Mailer / Roll-End','Display Box (PDQ)']},
     {k:'qty', l:'Order quantity (pcs)', type:'num'},
-    {toggles:['repeat'], l:['Repeat order — tooling already made']}
+    {toggles:['repeat'], l:['Repeat order — tooling already made']},
+    {info:'style'}
   ]},
   {t:'Box size & dieline', open:true, f:[
     {g:['len','wid','hgt'], l:['Length L (mm)','Width W (mm)','Height H (mm)'], type:'num'},
-    {g:['flap','flat_w','flat_h'], l:['Glue flap','Flat width','Flat height'], type:'num'},
+    {g:['flap','tuck','pieces'], l:['Glue flap (mm)','Tuck flap (mm)','Printed blanks / box'], type:'num'},
+    {g:['flat_w','flat_h'], l:['Flat width (mm)','Flat height (mm)'], type:'num'},
     {btn:'Calculate flat size from L × W × H', act:'autoFlat'},
     {info:'flat'}
   ]},
@@ -663,6 +747,7 @@ var PANEL = [
     {k:'board', l:'Board type', type:'select', opts:'boards'},
     {g:['gsm','psw','psh'], l:['Board GSM','Press sheet W','Press sheet H'], type:'num'},
     {g:['trim_w','trim_h'], l:['Trim across width','Gripper + tail'], type:'num'},
+    {k:'grain', l:'Sheet grain — carton height runs with the grain', type:'select', opts:['Long','Short','Free']},
     {info:'ups'}
   ]},
   {t:'Printing', open:true, f:[
@@ -671,7 +756,7 @@ var PANEL = [
   {t:'Decorative finishes', open:true, f:[
     {k:'lam', l:'Lamination / film', type:'select', opts:'films'},
     {toggles:['uv','foil','emb'], l:['Spot UV / drip-off','Hot foiling','Emboss / deboss']},
-    {g:['foil_area','emb_area'], l:['Foil block area (sq.in)','Emboss block area (sq.in)'], type:'num'},
+    {g:['foil_area','emb_area'], l:['Foil area per box (sq.in)','Emboss area per box (sq.in)'], type:'num'},
     {k:'other_pkr', l:'Other finishing cost (PKR, whole job)', type:'num'},
     {extras:true}
   ]},
@@ -683,7 +768,8 @@ var PANEL = [
     {k:'mode', l:'Freight mode', type:'select', opts:['DHL Express','Air Freight','Sea LCL']},
     {k:'incoterm', l:'Delivery term', type:'select', opts:['DAP','DDP']},
     {g:['duty_pct','vat_pct'], l:['Duty (0.03 = 3%)','VAT (0.20 = 20%)'], type:'num'},
-    {g:['pack_pct','cbm_override'], l:['Carton allowance (0.08 = 8%)','CBM override (sea)'], type:'num'},
+    {g:['pack_pct','cbm_override'], l:['Packing allowance (0.08 = 8%)','CBM override'], type:'num'},
+    {k:'cartons', l:'Export cartons (0 = work it out from volume)', type:'num'},
     {info:'weight'}
   ]},
   {t:'Option B — the upsell', f:[
@@ -702,7 +788,7 @@ var PANEL = [
     {k:'pi_no', l:'Proforma invoice number', type:'text', ph:'blank — set on the PI tab'},
     {btn:'Give this quote a PI number', act:'newPi'},
     {k:'po_ref', l:'Client PO reference', type:'text'},
-    {g:['hs_code','cartons'], l:['HS code','Export cartons'], type:'text'},
+    {k:'hs_code', l:'HS code', type:'text'},
     {k:'notes', l:'Internal notes (never printed)', type:'area'}
   ]}
 ];
@@ -745,7 +831,9 @@ function sectionOpen(sec){
 var LINE_LABELS = {
   board:'Board / paper', plates:'Plates', print:'Printing', proof:'Proof',
   lam:'Lamination', uv:'Spot UV / drip-off', foil:'Hot foil', emb:'Emboss',
-  die:'Cutting die', dc:'Die cutting', paste:'Pasting', pack:'Packing',
+  die:'Cutting die', dc:'Die cutting', paste:'Pasting',
+  core:'Greyboard core (rigid)', make:'Box making (rigid)', extras:'Extras',
+  pack:'Packing', cartons:'Export cartons',
   other:'Other', tr:'Local transport'
 };
 function costLinesHtml(){
@@ -812,18 +900,35 @@ function renderPanel(){
   document.getElementById('panel').innerHTML = h;
 }
 
+function suggestedFlat(){
+  var L = n(job.len), W = n(job.wid), H = n(job.hgt);
+  if(isRigid(job)) return {w: L + 2*H + 30, h: W + 2*H + 30, pieces: 2,
+    why: 'wrap for the base — lid wrap is the second blank'};
+  return {w: 2*(L+W) + n(job.flap), h: H + 2*W + 2*n(job.tuck), pieces: 1,
+    why: 'tuck end — height + two closure panels + two tuck flaps'};
+}
 function renderInfo(m){
   var imp = imposition(job);
+  var sf = suggestedFlat();
+  var warn = (m.warnings || []).map(function(w){ return '<div style="color:#D98B6A;margin-top:4px">⚠ ' + esc(w) + '</div>'; }).join('');
   var map = {
-    flat: 'Suggested for a tuck end: <b>' + int(2*(n(job.len)+n(job.wid))+n(job.flap)) + ' × '
-        + int(n(job.hgt)+2*n(job.wid)) + ' mm</b>. Override for rigid, sleeve or mailer styles.',
-    ups: imp.ups > 0
+    style: isRigid(job)
+        ? 'Rigid box: costed as a printed wrap over a greyboard core with hand assembly. '
+          + 'Dimensions are the inside of the base. Add <b>Magnetic closure</b> under extras if needed.'
+        : 'Folding carton: die cut, creased and side-seam glued from one printed blank.',
+    flat: 'Suggested (' + sf.why + '): <b>' + int(sf.w) + ' × ' + int(sf.h) + ' mm</b>'
+        + (sf.pieces > 1 ? ', <b>' + sf.pieces + ' blanks</b> per box' : '')
+        + '. Override for sleeve, pillow or mailer styles.',
+    ups: (imp.ups > 0
         ? 'Printable area <b>' + int(imp.ew) + ' × ' + int(imp.eh) + ' mm</b> · <b>' + imp.ups
-          + ' ups</b> per sheet · <b>' + int(m.gross) + '</b> sheets to buy'
-        : 'The dieline does not fit this press sheet. Check the flat size.',
+          + ' ups</b> ' + imp.orient + (imp.alt !== imp.ups ? ' (' + imp.alt + ' the other way)' : '')
+          + ' · <b>' + int(m.gross) + '</b> sheets to buy'
+        : 'The dieline does not fit this press sheet. Check the flat size.') + warn,
     weight: 'Each box <b>' + n(m.boxKg*1000).toFixed(1) + ' g</b> · shipment <b>'
-        + n(m.kgTotal).toFixed(1) + ' kg</b> · sea volume <b>' + n(m.cbmAuto).toFixed(2)
-        + ' CBM</b> · freight <b>' + usd(m.freight, 0) + '</b>',
+        + n(m.kgTotal).toFixed(1) + ' kg</b>'
+        + (m.chargeKg > m.kgTotal + 0.05 ? ' (charged as <b>' + n(m.chargeKg).toFixed(1) + ' kg</b> volumetric)' : '')
+        + ' · <b>' + n(m.cbmUsed).toFixed(2) + ' CBM</b> in <b>' + int(m.cartons) + '</b> cartons'
+        + ' · freight <b>' + usd(m.freight, 0) + '</b> · insurance <b>' + usd(m.insurance, 0) + '</b>',
     optionb: 'Fully recosted at ' + int(job.qty2) + ' pcs: <b>' + unitStr(m.unit2Auto)
         + '</b> per box' + (m.ddpPc > 0 ? ' — <b>' + Math.round((1 - m.unit2Auto/m.ddpPc)*100)
         + '% cheaper</b> than ' + int(job.qty) + ' pcs' : '')
@@ -834,7 +939,7 @@ function renderInfo(m){
 }
 
 function renderReadout(m){
-  var warn = m.marginPct < 0.2 ? ' warn' : '';
+  var warn = (m.marginPct < 0.2 || (m.warnings && m.warnings.length)) ? ' warn' : '';
   document.getElementById('readout').innerHTML =
     '<div class="ro"><span>Cost / pc</span><b>' + n(m.perPc).toFixed(2) + ' PKR</b></div>' +
     '<div class="ro"><span>Ex works / pc</span><b>' + unitStr(m.exwPc) + '</b></div>' +
@@ -860,8 +965,29 @@ function masthead(title, meta){
   return h + '</dl></div></header>';
 }
 
+function forming(){
+  if(isRigid(job)) return 'Die cut greyboard, wrapped by hand, corners finished';
+  if(job.style === 'Auto-Lock Bottom') return 'Die cut, creased, crash-lock bottom glued';
+  if(job.style === 'Sleeve' || job.style === 'Pillow Box') return 'Die cut, creased, side-seam glued';
+  if(job.style === 'Mailer / Roll-End' || job.style === 'Display Box (PDQ)') return 'Die cut, creased, supplied flat for self-assembly';
+  return 'Die cut, creased, side-seam glued';
+}
+function toolingWords(){
+  var t = ['cutting die'];
+  if(job.foil === 'Yes') t.push('foil block');
+  if(job.emb === 'Yes') t.push('emboss block');
+  return t.length === 1 ? t[0] : t.slice(0,-1).join(', ') + ' and ' + t[t.length-1];
+}
+function hsDesc(code){
+  var c = String(code || '').replace(/\D/g,'');
+  if(c.indexOf('481920') === 0) return 'folding cartons of non-corrugated paperboard';
+  if(c.indexOf('481950') === 0) return 'rigid set-up boxes of paperboard';
+  if(c.indexOf('481910') === 0) return 'cartons of corrugated paperboard';
+  return 'packing containers of paper or paperboard';
+}
 function renderQuote(m){
   var fin = finishList();
+  var rigid = isRigid(job);
   var h = masthead('Quotation', {
     contactline: S('email') + ' &nbsp;·&nbsp; ' + S('phone'),
     rows: [['Ref', job.quote_no || '—'], ['Date', prettyDate(job.date)],
@@ -878,11 +1004,11 @@ function renderQuote(m){
   h += '<div class="hr"></div><p class="eyebrow">Specification</p><dl class="spec">'
     + spec('Product', job.product, 'w2') + spec('Box style', job.style)
     + spec('Closed size', int(job.len) + ' × ' + int(job.wid) + ' × ' + int(job.hgt) + ' mm')
-    + spec('Board', job.board + ' ' + int(job.gsm) + ' gsm')
+    + spec('Board', (rigid ? 'Greyboard core wrapped in ' : '') + job.board + ' ' + int(job.gsm) + ' gsm')
     + spec('Printing', int(job.col_f) + ' colour outside / ' + int(job.col_b) + ' colour inside')
     + spec('Lamination', job.lam)
-    + spec('Cutting & forming', 'Die cut, creased, side-seam glued')
-    + spec('Packing', 'Flat-packed, lined export cartons')
+    + spec('Cutting & forming', forming())
+    + spec('Packing', rigid ? 'Assembled boxes, each sleeved, in lined export cartons' : 'Flat-packed, lined export cartons')
     + (job.repeat === 'Yes' ? spec('Order type', 'Repeat order — tooling retained from your previous run') : '')
     + spec('Artwork', 'Print-ready PDF supplied by client · dieline supplied by us, free of charge', 'w3')
     + '</dl>';
@@ -901,7 +1027,7 @@ function renderQuote(m){
     + '<div class="m">' + int(job.qty2) + ' pcs @ ' + unitStr(m.unit2) + '</div>'
     + '<div class="r">' + usd(m.total2, 0) + '</div></div>'
     + '<p class="note">Tooling and press make-ready are the same at either quantity, so the second run is '
-    + 'always the cheaper one. The cutting die and foil block are one-time charges and are stored here '
+    + 'always the cheaper one. The ' + toolingWords() + ' are one-time charges and are stored here '
     + 'for your repeat orders.</p>';
 
   h += '<div class="pgbreak"></div>'
@@ -912,7 +1038,7 @@ function renderQuote(m){
     + term('Lead time', esc(job.lead_time) + ' working days from written artwork approval and receipt of advance.')
     + term('Freight', esc(job.mode) + ' — transit ' + esc(job.transit) + ' days.')
     + term('Payment', '50% with the purchase order, 50% against dispatch photographs before the shipment is handed over.')
-    + term('Approval', 'Digital proof issued for written approval before plates are made. Physical pre-production sample on request.')
+    + term('Approval', 'Digital proof issued for written approval before plates are made. Screen proofs are for layout, not colour; a wet proof or press-approved sample on request. Colour held within normal commercial tolerance of the approved reference.')
     + term('Tolerance', 'Delivered quantity may vary ±5%; invoicing is adjusted to the quantity actually delivered.')
     + term('Artwork format', 'Print-ready PDF, CMYK, 3 mm bleed, fonts outlined. Foil and spot UV as separate 100% black layers.')
     + term('Validity', 'Prices hold for ' + esc(job.validity) + ' and assume the USD rate current at the date of issue.')
@@ -948,7 +1074,7 @@ function renderPi(m){
     + '<div><p class="eyebrow">Shipment</p><div class="pline" style="padding-top:8px">'
     + 'Incoterm: ' + esc(job.incoterm || 'DAP') + ' ' + esc(job.client_country) + '<br>'
     + 'Mode: ' + esc(job.mode) + '<br>'
-    + 'Gross weight: ' + n(m.kgTotal).toFixed(1) + ' kg · ' + int(job.cartons) + ' export cartons<br>'
+    + 'Gross weight: ' + n(m.kgTotal).toFixed(1) + ' kg · ' + int(m.cartons) + ' export cartons<br>'
     + 'Country of origin: Pakistan</div></div></section>';
 
   h += '<div class="hr"></div><p class="eyebrow">Goods</p><table class="goods"><thead><tr>'
@@ -958,11 +1084,11 @@ function renderPi(m){
     + '<span class="sub">' + esc(job.board) + ' ' + int(job.gsm) + ' gsm · '
     + int(job.col_f) + 'C + ' + int(job.col_b) + 'C'
     + (fin.length ? ' · ' + fin.map(esc).join(' · ') : '') + '</span>'
-    + '<span class="sub">HS Code ' + esc(job.hs_code) + ' — folding cartons of non-corrugated paperboard</span>'
+    + '<span class="sub">HS Code ' + esc(job.hs_code) + ' — ' + hsDesc(job.hs_code) + '</span>'
     + '</td><td class="n r">' + int(job.qty) + '</td><td class="n r">' + unitStr(m.ddpPc) + '</td>'
     + '<td class="n r">' + usd(m.ddp) + '</td></tr>'
     + '<tr><td>' + (job.repeat === 'Yes' ? 'Tooling — retained from your previous order'
-        : 'Tooling — cutting die and foil block')
+        : 'Tooling — ' + toolingWords())
     + '<span class="sub">One-time. Retained in our storage; not charged on repeat orders.</span></td>'
     + '<td class="n r">1</td><td class="n r">$0.00</td><td class="n r">$0.00</td></tr>'
     + '<tr><td colspan="3" class="r" style="font-family:\'IBM Plex Mono\',monospace;font-size:9px;'
@@ -990,7 +1116,10 @@ function renderPi(m){
     + '<li>Production starts only after written approval of the digital proof.</li>'
     + '<li>Delivered quantity may vary ±5%; the invoice is adjusted to the quantity delivered.</li>'
     + '<li>Tooling remains the property of the exporter and is stored for the buyer\'s repeat orders.</li>'
-    + '<li>Prices are quoted DDP and hold for ' + esc(job.validity) + ' from the date of this invoice.</li>'
+    + '<li>Prices are quoted ' + esc(job.incoterm || 'DAP') + (job.client_country ? ' ' + esc(job.client_country) : '') + (job.incoterm === 'DDP'
+        ? ' — duty and VAT included; nothing further is payable on arrival.'
+        : ' — freight included; any import duty or VAT at destination is for the buyer\'s account.')
+    + ' Prices hold for ' + esc(job.validity) + ' from the date of this invoice.</li>'
     + '<li>Title in the goods passes to the buyer on receipt of the final payment.</li></ol>';
 
   h += '<div class="close"><p>This is a proforma invoice issued for payment and customs pre-clearance. '
@@ -1046,7 +1175,16 @@ document.getElementById('panel').addEventListener('input', function(e){
 });
 document.getElementById('panel').addEventListener('change', function(e){
   var k = e.target.getAttribute('data-k');
-  if(k && e.target.tagName === 'SELECT'){ job[k] = e.target.value; renderAll(); }
+  if(k && e.target.tagName === 'SELECT'){
+    job[k] = e.target.value;
+    if(k === 'style'){
+      /* rigid set-up boxes classify under 4819.50, folding cartons under 4819.20 */
+      if(isRigid(job) && job.hs_code === '4819.2000') job.hs_code = '4819.5000';
+      if(!isRigid(job) && job.hs_code === '4819.5000') job.hs_code = '4819.2000';
+      var hs = document.getElementById('i_hs_code'); if(hs) hs.value = job.hs_code;
+    }
+    renderAll();
+  }
 });
 document.getElementById('panel').addEventListener('click', function(e){
   var tg = e.target.closest('[data-tg]');
@@ -1094,10 +1232,11 @@ function isPlaceholderCompany(){
 var ACTIONS = {
   openSettings: function(){ document.getElementById('b-settings').click(); },
   autoFlat: function(){
-    job.flat_w = 2*(n(job.len)+n(job.wid)) + n(job.flap);
-    job.flat_h = n(job.hgt) + 2*n(job.wid);
+    var sf = suggestedFlat();
+    job.flat_w = sf.w; job.flat_h = sf.h; job.pieces = sf.pieces;
     document.getElementById('i_flat_w').value = job.flat_w;
     document.getElementById('i_flat_h').value = job.flat_h;
+    document.getElementById('i_pieces').value = job.pieces;
     renderAll();
     toast('Flat size calculated');
   },
@@ -1123,7 +1262,7 @@ var ACTIONS = {
       }).nextPiNumber();
     } else {
       var next = n(DB.settings.pi_next || 1);
-      job.pi_no = (DB.settings.pi_prefix || 'PI-') + ('000' + next).slice(-3);
+      job.pi_no = prefixNow(DB.settings.pi_prefix || 'PI-') + padNo(next);
       DB.settings.pi_next = next + 1;
       document.getElementById('i_pi_no').value = job.pi_no;
       persistDemo(); renderAll(); toast('PI number ' + job.pi_no);
@@ -1206,7 +1345,7 @@ document.getElementById('b-save').addEventListener('click', function(){
   } else {
     if(!job.quote_no){
       var nx = n(DB.settings.quote_next || 1);
-      job.quote_no = (DB.settings.quote_prefix || 'QT-') + ('000' + nx).slice(-3);
+      job.quote_no = prefixNow(DB.settings.quote_prefix || 'QT-') + padNo(nx);
       DB.settings.quote_next = nx + 1;
     }
     DB.quotes = (DB.quotes || []).filter(function(q){ return q.quote_no !== job.quote_no; });
@@ -1298,56 +1437,86 @@ function applyLoaded(o){
 }
 
 document.getElementById('b-rates').addEventListener('click', function(){
-  var h = '<header><h3>Rates</h3><div class="spacer"></div><button class="btn" data-close>Cancel</button>'
-        + '<button class="btn btn-go" id="r-save">Save rates</button></header><div class="body">'
-        + '<p class="hintline">These drive every quote you make from now on. '
-        + '<b>Saved quotes keep the prices they were saved with.</b></p>'
-        + '<div class="grp"><h4>Production &amp; commercial</h4><table class="rtab">';
-  RATE_META.forEach(function(r){
-    h += '<tr><td style="width:46%"><label style="font-size:12px">' + esc(r[1]) + '</label></td>'
-      + '<td style="width:22%"><input class="n" data-rate="' + r[0] + '" type="number" step="any" value="'
-      + esc(rate(r[0])) + '"></td>'
-      + '<td style="font-size:10.5px;color:var(--app-dim)">' + esc(r[2]) + '</td></tr>';
-  });
-  h += '</table></div><div class="grp"><h4>Board / paper — PKR per kg</h4><table class="rtab">'
-    + '<tr><th>Board</th><th style="width:110px">PKR/kg</th><th>Note</th></tr>';
-  DB.boards.forEach(function(b, i){
-    h += '<tr><td><input data-b="' + i + '" data-bf="name" value="' + esc(b.name) + '"></td>'
-      + '<td><input class="n" data-b="' + i + '" data-bf="pkr_per_kg" type="number" step="any" value="' + esc(b.pkr_per_kg) + '"></td>'
-      + '<td><input data-b="' + i + '" data-bf="note" value="' + esc(b.note || '') + '"></td></tr>';
-  });
-  h += '</table></div><div class="grp"><h4>Lamination / film — PKR per square inch</h4><table class="rtab">'
-    + '<tr><th>Film</th><th style="width:110px">PKR/sq.in</th><th>Note</th></tr>';
-  DB.films.forEach(function(f, i){
-    h += '<tr><td><input data-f="' + i + '" data-ff="name" value="' + esc(f.name) + '"></td>'
-      + '<td><input class="n" data-f="' + i + '" data-ff="pkr_per_sqin" type="number" step="any" value="' + esc(f.pkr_per_sqin) + '"></td>'
-      + '<td><input data-f="' + i + '" data-ff="note" value="' + esc(f.note || '') + '"></td></tr>';
-  });
-  h += '</table></div></div>';
-  openModal(h);
+  /* Working copies — nothing touches DB until Save rates. */
+  var wb = DB.boards.map(function(b){ return {name:b.name, pkr_per_kg:b.pkr_per_kg, note:b.note || ''}; });
+  var wf = DB.films.map(function(f){ return {name:f.name, pkr_per_sqin:f.pkr_per_sqin, note:f.note || ''}; });
+  var wr = {};
+  RATE_META.forEach(function(r){ wr[r[0]] = rate(r[0]); });
 
-  document.getElementById('r-save').addEventListener('click', function(){
-    var rates = {};
+  function pull(){ /* read every input back into the working copies */
     Array.prototype.forEach.call(modal.querySelectorAll('[data-rate]'), function(el){
-      rates[el.getAttribute('data-rate')] = n(el.value);
+      wr[el.getAttribute('data-rate')] = n(el.value);
     });
-    var boards = DB.boards.map(function(b){ return {name:b.name, pkr_per_kg:b.pkr_per_kg, note:b.note}; });
     Array.prototype.forEach.call(modal.querySelectorAll('[data-b]'), function(el){
       var i = Number(el.getAttribute('data-b')), f = el.getAttribute('data-bf');
-      boards[i][f] = (f === 'pkr_per_kg') ? n(el.value) : el.value;
+      if(wb[i]) wb[i][f] = (f === 'pkr_per_kg') ? n(el.value) : el.value;
     });
-    var films = DB.films.map(function(f){ return {name:f.name, pkr_per_sqin:f.pkr_per_sqin, note:f.note}; });
     Array.prototype.forEach.call(modal.querySelectorAll('[data-f]'), function(el){
       var i = Number(el.getAttribute('data-f')), f = el.getAttribute('data-ff');
-      films[i][f] = (f === 'pkr_per_sqin') ? n(el.value) : el.value;
+      if(wf[i]) wf[i][f] = (f === 'pkr_per_sqin') ? n(el.value) : el.value;
+    });
+  }
+  function draw(){
+    var h = '<header><h3>Rates</h3><div class="spacer"></div><button class="btn" data-close>Cancel</button>'
+          + '<button class="btn btn-go" id="r-save">Save rates</button></header><div class="body">'
+          + '<p class="hintline">These drive every quote you make from now on. '
+          + '<b>Saved quotes keep the prices they were saved with.</b></p>'
+          + '<div class="grp"><h4>Production &amp; commercial</h4><table class="rtab">';
+    RATE_META.forEach(function(r){
+      h += '<tr><td style="width:46%"><label style="font-size:12px">' + esc(r[1]) + '</label></td>'
+        + '<td style="width:22%"><input class="n" data-rate="' + r[0] + '" type="number" step="any" value="'
+        + esc(wr[r[0]]) + '"></td>'
+        + '<td style="font-size:10.5px;color:var(--app-dim)">' + esc(r[2]) + '</td></tr>';
+    });
+    h += '</table></div><div class="grp"><h4>Board / paper — PKR per kg</h4><table class="rtab">'
+      + '<tr><th>Board</th><th style="width:110px">PKR/kg</th><th>Note</th><th style="width:30px"></th></tr>';
+    wb.forEach(function(b, i){
+      h += '<tr><td><input data-b="' + i + '" data-bf="name" value="' + esc(b.name) + '"></td>'
+        + '<td><input class="n" data-b="' + i + '" data-bf="pkr_per_kg" type="number" step="any" value="' + esc(b.pkr_per_kg) + '"></td>'
+        + '<td><input data-b="' + i + '" data-bf="note" value="' + esc(b.note || '') + '"></td>'
+        + '<td><button class="del" data-rmb="' + i + '" title="Remove">×</button></td></tr>';
+    });
+    h += '</table><button class="btn" data-addb style="margin-top:10px">+ Add board</button></div>'
+      + '<div class="grp"><h4>Lamination / film — PKR per square inch</h4><table class="rtab">'
+      + '<tr><th>Film</th><th style="width:110px">PKR/sq.in</th><th>Note</th><th style="width:30px"></th></tr>';
+    wf.forEach(function(f, i){
+      h += '<tr><td><input data-f="' + i + '" data-ff="name" value="' + esc(f.name) + '"></td>'
+        + '<td><input class="n" data-f="' + i + '" data-ff="pkr_per_sqin" type="number" step="any" value="' + esc(f.pkr_per_sqin) + '"></td>'
+        + '<td><input data-f="' + i + '" data-ff="note" value="' + esc(f.note || '') + '"></td>'
+        + '<td><button class="del" data-rmf="' + i + '" title="Remove">×</button></td></tr>';
+    });
+    h += '</table><button class="btn" data-addf style="margin-top:10px">+ Add film</button></div></div>';
+    openModal(h);
+
+    modal.querySelector('.body').addEventListener('click', function(e){
+      var t = e.target;
+      if(t.hasAttribute('data-addb')){ pull(); wb.push({name:'', pkr_per_kg:0, note:''}); draw(); return; }
+      if(t.hasAttribute('data-addf')){ pull(); wf.push({name:'', pkr_per_sqin:0, note:''}); draw(); return; }
+      if(t.hasAttribute('data-rmb')){
+        pull(); var b = wb[Number(t.getAttribute('data-rmb'))];
+        if(b && b.name === job.board){ toast('This board is used by the open quote'); return; }
+        wb.splice(Number(t.getAttribute('data-rmb')), 1); draw(); return;
+      }
+      if(t.hasAttribute('data-rmf')){
+        pull(); var f = wf[Number(t.getAttribute('data-rmf'))];
+        if(f && f.name === job.lam){ toast('This film is used by the open quote'); return; }
+        wf.splice(Number(t.getAttribute('data-rmf')), 1); draw(); return;
+      }
     });
 
-    DB.rates = rates; DB.boards = boards; DB.films = films;
-    call('saveRates', {rates:rates, boards:boards, films:films}, function(){});
-    persistDemo();
-    closeModal(); renderPanel(); renderAll();
-    toast('Rates saved');
-  });
+    document.getElementById('r-save').addEventListener('click', function(){
+      pull();
+      var boards = wb.filter(function(b){ return String(b.name).trim() !== ''; });
+      var films = wf.filter(function(f){ return String(f.name).trim() !== ''; });
+      if(!films.some(function(f){ return f.name === 'None'; })) films.unshift({name:'None', pkr_per_sqin:0, note:'No lamination'});
+      DB.rates = wr; DB.boards = boards; DB.films = films;
+      call('saveRates', {rates:wr, boards:boards, films:films}, function(){});
+      persistDemo();
+      closeModal(); renderPanel(); renderAll();
+      toast('Rates saved');
+    });
+  }
+  draw();
 });
 
 document.getElementById('b-settings').addEventListener('click', function(){
@@ -1358,7 +1527,7 @@ document.getElementById('b-settings').addEventListener('click', function(){
     ['Bank — shown on the proforma invoice', [['bank_benef','Beneficiary'],['bank_name','Bank'],
       ['bank_branch','Branch'],['bank_iban','Account / IBAN'],['bank_swift','SWIFT / BIC'],
       ['bank_payoneer','Payoneer']]],
-    ['Numbering', [['quote_prefix','Quotation prefix'],['pi_prefix','PI prefix']]]
+    ['Numbering — write {yyyy} or {yy} in a prefix and the year fills itself in', [['quote_prefix','Quotation prefix'],['pi_prefix','PI prefix']]]
   ];
   var h = '<header><h3>Settings</h3><div class="spacer"></div><button class="btn" data-close>Cancel</button>'
         + '<button class="btn btn-go" id="s-save">Save settings</button></header><div class="body">';
@@ -1409,11 +1578,12 @@ document.getElementById('b-mail').addEventListener('click', function(){
     'Hi ' + first + ',\n\n' +
     'Quotation attached for ' + (job.product || 'your packaging') + '.\n\n' +
     '  Quantity    : ' + int(job.qty) + ' pcs\n' +
-    '  Unit price  : ' + unitStr(m.ddpPc) + ' per box, DDP — delivered to your door\n' +
+    '  Unit price  : ' + unitStr(m.ddpPc) + ' per box, ' + (job.incoterm === 'DDP'
+        ? 'DDP — delivered to your door, duty and VAT paid' : 'DAP — delivered to your door, duty unpaid') + '\n' +
     '  Total       : ' + usd(m.ddp, 0) + '\n' +
     '  Lead time   : ' + job.lead_time + ' working days after artwork approval\n\n' +
     'Two things worth knowing before you decide:\n\n' +
-    '1. The cutting die and foil block are one-time charges. Repeat orders are cheaper because that ' +
+    '1. The ' + toolingWords() + ' are one-time charges. Repeat orders are cheaper because that ' +
     'tooling is already made.\n\n' +
     '2. At ' + int(job.qty2) + ' pcs the unit price falls to ' + unitStr(m.unit2) +
     '. Setup costs the same either way, so the second thousand is always cheaper than the first.\n\n' +
