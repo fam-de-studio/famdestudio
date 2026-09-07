@@ -7,6 +7,7 @@ import { site } from "@/content/site";
 import { Reveal } from "@/components/ui/Reveal";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Dots, SpecList } from "@/components/ui/Spec";
+import { Words } from "@/components/ui/Words";
 
 type Params = { slug: string };
 
@@ -67,7 +68,9 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
           <Reveal className="flex flex-wrap items-end justify-between gap-6 pb-10">
             <div>
               <Eyebrow>{p.category}</Eyebrow>
-              <h1 className="t-h1 mt-6">{p.name}</h1>
+              <h1 className="t-h1 mt-6">
+                <Words text={p.name} />
+              </h1>
             </div>
             <p className="t-small text-muted lg:pb-3">
               <Dots items={p.finishes} />
@@ -166,7 +169,7 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
             <div className="lg:col-span-6">
               <Eyebrow n="09">Detail</Eyebrow>
               <h2 className="t-h2 mt-8">
-                Where the box is <span className="t-italic">judged.</span>
+                <Words text="Where the box is" /> <span className="w" style={{ ["--w" as string]: 4 }}><i className="t-italic">judged.</i></span>
               </h2>
             </div>
           </Reveal>

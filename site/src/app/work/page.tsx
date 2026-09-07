@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Reveal } from "@/components/ui/Reveal";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Button } from "@/components/ui/Button";
+import { Words } from "@/components/ui/Words";
 import { projects } from "@/content/projects";
 import { WorkTile } from "@/components/work/WorkTile";
 
@@ -22,7 +23,7 @@ export default function WorkIndexPage() {
             <div className="lg:col-span-7">
               <Eyebrow>Work</Eyebrow>
               <h1 className="t-h1 mt-8">
-                Every box, from dieline to <span className="t-italic">finish.</span>
+                <Words text="Every box, from dieline to" /> <span className="w" style={{ ["--w" as string]: 5 }}><i className="t-italic foil">finish.</i></span>
               </h1>
             </div>
             <p className="t-lead text-muted lg:col-span-4 lg:col-start-9 lg:pt-4">
@@ -55,7 +56,7 @@ export default function WorkIndexPage() {
         <div className="container-x grid gap-8 lg:grid-cols-12">
           <Reveal className="lg:col-span-7">
             <h2 className="t-h2">
-              Have a product that needs a <span className="t-italic">box?</span>
+              <Words text="Have a product that needs a" /> <span className="w" style={{ ["--w" as string]: 6 }}><i className="t-italic">box?</i></span>
             </h2>
           </Reveal>
           <Reveal index={1} className="lg:col-span-4 lg:col-start-9 lg:pt-3">

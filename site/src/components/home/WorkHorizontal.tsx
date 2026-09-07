@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Project } from "@/content/projects";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Dots } from "@/components/ui/Spec";
+import { Tilt } from "@/components/ui/Tilt";
 
 /**
  * Pinned horizontal showcase. The section is tall; an inner 100vh panel
@@ -127,22 +128,24 @@ export function WorkHorizontal({ projects }: { projects: Project[] }) {
               className="hcard shrink-0 snap-start"
             >
               <Link href={`/work/${p.slug}`} className="group block" data-cursor="view">
-                <div className="hmedia sheen hover-zoom relative overflow-hidden bg-ink-2">
-                  <Image
-                    src={p.cover.src}
-                    alt={p.cover.alt}
-                    sizes="(min-width: 1024px) 60vw, 80vw"
-                    placeholder="blur"
-                    priority={i === 0}
-                    className="h-full w-full object-cover"
-                  />
-                  <span
-                    aria-hidden
-                    className="t-num absolute left-6 top-5 text-[0.8125rem] tracking-[0.1em] text-text/80 mix-blend-difference"
-                  >
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                </div>
+                <Tilt>
+                  <div className="hmedia tilt-glow sheen hover-zoom relative overflow-hidden bg-ink-2">
+                    <Image
+                      src={p.cover.src}
+                      alt={p.cover.alt}
+                      sizes="(min-width: 1024px) 60vw, 80vw"
+                      placeholder="blur"
+                      priority={i === 0}
+                      className="h-full w-full object-cover"
+                    />
+                    <span
+                      aria-hidden
+                      className="t-num absolute left-6 top-5 text-[0.8125rem] tracking-[0.1em] text-text/80 mix-blend-difference"
+                    >
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                  </div>
+                </Tilt>
                 <div className="mt-5 flex items-start justify-between gap-6">
                   <div>
                     <h3 className="t-h3 uppercase tracking-[0.04em] transition-colors duration-500 group-hover:text-champagne">

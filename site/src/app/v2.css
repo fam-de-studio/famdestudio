@@ -390,6 +390,25 @@ html[data-loading="true"] {
   transform: translateY(calc(var(--fd) * -1.6)) rotateX(var(--a, 0deg));
 }
 
+/* ---------- Pointer tilt on work cards ---------- */
+.tilt {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.tilt > .tilt-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(245, 197, 24, 0.14), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.tilt:hover > .tilt-glow::before {
+  opacity: 1;
+}
+
 /* ---------- Giant footer wordmark ---------- */
 .foot-mark {
   font-family: var(--font-serif);

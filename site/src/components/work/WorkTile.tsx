@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Project } from "@/content/projects";
 import { Reveal } from "@/components/ui/Reveal";
 import { Dots } from "@/components/ui/Spec";
+import { Tilt } from "@/components/ui/Tilt";
 
 const aspect: Record<Project["size"], string> = {
   large: "aspect-[4/3]",
@@ -30,16 +31,18 @@ export function WorkTile({
   return (
     <Reveal index={index} as="article" className={className}>
       <Link href={`/work/${project.slug}`} className="group block" data-cursor="view">
-        <Reveal variant="image" className={`sheen hover-zoom overflow-hidden bg-ink-2 ${aspect[project.size]}`}>
-          <Image
-            src={project.cover.src}
-            alt={project.cover.alt}
-            sizes={sizes}
-            placeholder="blur"
-            priority={priority}
-            className="h-full w-full object-cover"
-          />
-        </Reveal>
+        <Tilt>
+          <Reveal variant="image" className={`tilt-glow sheen hover-zoom relative overflow-hidden bg-ink-2 ${aspect[project.size]}`}>
+            <Image
+              src={project.cover.src}
+              alt={project.cover.alt}
+              sizes={sizes}
+              placeholder="blur"
+              priority={priority}
+              className="h-full w-full object-cover"
+            />
+          </Reveal>
+        </Tilt>
         <div className="mt-5 flex items-start justify-between gap-6">
           <div>
             <Heading className="t-h3 uppercase tracking-[0.04em] transition-colors duration-500 group-hover:text-champagne">
