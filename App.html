@@ -399,7 +399,8 @@ var LS = 'press-docket-demo-v1';
 var DEFAULT_RATES = {
   plate:1200, print:900, print_min:1000, proof:3500, uv_setup:3000, uv_run:3.5,
   foil_block:45, foil_run:2.5, emb_block:60, emb_run:2,
-  dc_run:1800, dc_min:2500, paste:2.5, pack:1.5,
+  dc_run:1800, dc_min:2500, paste:2.5, paste_lock:5, pack:1.5,
+  flute_e:95, flute_b:110, flute_eb:180, mount:6,
   carton_pkr:220, carton_cbm:0.06,
   rigid_kg:260, rigid_gsm:1200, rigid_make:45,
   x_window:6, x_ribbon:8, x_magnet:25, x_edge:10, x_braille:4,
@@ -420,7 +421,12 @@ var RATE_META = [
   ['emb_run','Emboss / deboss running rate','PKR per sheet'],
   ['dc_run','Die cutting running rate','PKR per 1,000 sheets'],
   ['dc_min','Die cutting minimum','PKR per job'],
-  ['paste','Pasting / gluing (folding cartons)','PKR per piece'],
+  ['paste','Pasting — straight-line gluing','PKR per piece'],
+  ['paste_lock','Pasting — crash-lock / 4-corner gluing','PKR per piece'],
+  ['flute_e','E-flute corrugated sheet','PKR per square metre'],
+  ['flute_b','B-flute corrugated sheet','PKR per square metre'],
+  ['flute_eb','EB double-wall corrugated sheet','PKR per square metre'],
+  ['mount','Litho-lam mounting, printed sheet onto flute','PKR per sheet'],
   ['pack','Packing, labour & inspection','PKR per piece'],
   ['carton_pkr','Export shipper carton (5-ply)','PKR per carton'],
   ['carton_cbm','Shipper carton volume','CBM each, e.g. 0.06 = 50 × 40 × 30 cm'],
@@ -483,7 +489,7 @@ function blankJob(){
     client_name:'', client_contact:'', client_country:'', client_email:'', client_address:'',
     product:'', style:'Straight Tuck End (STE)', qty:5000, repeat:'No',
     len:45, wid:45, hgt:120, flap:15, tuck:18, pieces:1, flat_w:195, flat_h:246,
-    board:'SBS / Ivory Board', gsm:350, psw:635, psh:965, trim_w:10, trim_h:25, grain:'Long',
+    board:'SBS / Ivory Board', gsm:350, psw:635, psh:965, trim_w:10, trim_h:25, grain:'Long', flute:'None',
     col_f:5, col_b:0,
     lam:'Soft Touch / Velvet', uv:'Yes', foil:'Yes', foil_area:6, emb:'No', emb_area:4,
     other_pkr:0, extras:[],
@@ -544,6 +550,15 @@ function filmRate(ctx, name){ if(!name || name === 'None') return 0; for(var i=0
 
 var RIGID_STYLES = ['Rigid Two-Piece','Rigid Magnetic','Drawer / Matchbox','Rigid Tube'];
 function isRigid(job){ return RIGID_STYLES.indexOf(job.style) > -1; }
+/* Crash-lock and gable bottoms go through a 4-corner / lock gluer, dearer than straight-line. */
+var LOCK_STYLES = ['Auto-Lock Bottom','Gable Box'];
+/* Litho-lam: the printed sheet is mounted on a corrugated flute sheet. gsm and
+   caliper feed weight and volume. */
+var FLUTES = {
+  'E-flute':  {key:'flute_e',  gsm:420, mm:1.6},
+  'B-flute':  {key:'flute_b',  gsm:520, mm:3.0},
+  'EB-flute': {key:'flute_eb', gsm:900, mm:4.5}
+};
 var EXTRA_RATE_KEY = {'Window patch':'x_window', 'Ribbon pull':'x_ribbon', 'Magnetic closure':'x_magnet',
                       'Edge painting':'x_edge', 'Braille panel':'x_braille'};
 
@@ -605,7 +620,9 @@ function costForQty(job, ctx, qty){
   var coreKg = rigid ? (2 * (L*W + 2*(L+W)*H) / 1e6) * rateOf(ctx,'rigid_gsm',1200) / 1000 : 0;
 
   /* Weight & volume, needed for the shipper-carton count before the cost lines. */
-  var wrapKg = (n_(job.flat_w) * n_(job.flat_h) / 1e6) * n_(job.gsm) / 1000 * pieces;
+  var fl = FLUTES[job.flute] || null;
+  var sheetM2 = n_(job.psw) * n_(job.psh) / 1e6;
+  var wrapKg = (n_(job.flat_w) * n_(job.flat_h) / 1e6) * (n_(job.gsm) + (fl ? fl.gsm : 0)) / 1000 * pieces;
   var boxKg = wrapKg + coreKg;
   var grossKg = boxKg * qty * (1 + n_(job.pack_pct));
   /* Flat-pack volume: flat area x board thickness (~gsm/800000 m; 350gsm ~ 0.44mm).
@@ -613,7 +630,7 @@ function costForQty(job, ctx, qty){
      the packing allowance. A typed override wins for odd cargo. */
   var cbmAuto = rigid
     ? ((L+6)/1000) * ((W+6)/1000) * ((H+6)/1000) * qty * (1 + n_(job.pack_pct))
-    : (n_(job.flat_w)/1000) * (n_(job.flat_h)/1000) * (n_(job.gsm)/800000) * pieces * qty * (1 + n_(job.pack_pct));
+    : (n_(job.flat_w)/1000) * (n_(job.flat_h)/1000) * (n_(job.gsm)/800000 + (fl ? fl.mm/1000 : 0)) * pieces * qty * (1 + n_(job.pack_pct));
   var cbmUsed = (job.cbm_override !== undefined && job.cbm_override !== null && job.cbm_override !== '')
     ? n_(job.cbm_override) : cbmAuto;
   var cartonCbm = rateOf(ctx,'carton_cbm',0.06);
@@ -626,13 +643,15 @@ function costForQty(job, ctx, qty){
     print: plates > 0 ? printSheets/1000 * rateOf(ctx,'print',900) * plates : 0,
     proof: rep ? 0 : rateOf(ctx,'proof',3500),
     lam:   gross * area * fRate,
+    flute: fl ? gross * sheetM2 * rateOf(ctx, fl.key, 100) : 0,
+    mount: fl ? gross * rateOf(ctx,'mount',6) : 0,
     uv:    job.uv === 'Yes' ? (rep ? 0 : rateOf(ctx,'uv_setup',3000)) + gross * rateOf(ctx,'uv_run',3.5) : 0,
     foil:  job.foil === 'Yes' ? (rep ? 0 : foilBlock) + gross * rateOf(ctx,'foil_run',2.5) : 0,
     emb:   job.emb === 'Yes' ? (rep ? 0 : embBlock) + gross * rateOf(ctx,'emb_run',2) : 0,
     die:   rep ? 0 : n_(job.die_cost),
     /* only the run sheets reach the die cutter; press make-ready is discarded */
     dc:    Math.max(runSheets/1000 * rateOf(ctx,'dc_run',1800), rateOf(ctx,'dc_min',2500)),
-    paste: rigid ? 0 : qty * rateOf(ctx,'paste',2.5),
+    paste: rigid ? 0 : qty * (LOCK_STYLES.indexOf(job.style) > -1 ? rateOf(ctx,'paste_lock',5) : rateOf(ctx,'paste',2.5)),
     core:  rigid ? coreKg * qty * rateOf(ctx,'rigid_kg',260) : 0,
     make:  rigid ? qty * rateOf(ctx,'rigid_make',45) : 0,
     extras: qty * extrasPc,
@@ -748,6 +767,7 @@ var PANEL = [
     {g:['gsm','psw','psh'], l:['Board GSM','Press sheet W','Press sheet H'], type:'num'},
     {g:['trim_w','trim_h'], l:['Trim across width','Gripper + tail'], type:'num'},
     {k:'grain', l:'Sheet grain — carton height runs with the grain', type:'select', opts:['Long','Short','Free']},
+    {k:'flute', l:'Corrugated flute under the printed sheet (litho-lam)', type:'select', opts:['None','E-flute','B-flute','EB-flute']},
     {info:'ups'}
   ]},
   {t:'Printing', open:true, f:[
@@ -830,7 +850,7 @@ function sectionOpen(sec){
 
 var LINE_LABELS = {
   board:'Board / paper', plates:'Plates', print:'Printing', proof:'Proof',
-  lam:'Lamination', uv:'Spot UV / drip-off', foil:'Hot foil', emb:'Emboss',
+  lam:'Lamination', flute:'Corrugated flute', mount:'Litho-lam mounting', uv:'Spot UV / drip-off', foil:'Hot foil', emb:'Emboss',
   die:'Cutting die', dc:'Die cutting', paste:'Pasting',
   core:'Greyboard core (rigid)', make:'Box making (rigid)', extras:'Extras',
   pack:'Packing', cartons:'Export cartons',
@@ -843,7 +863,7 @@ function costLinesHtml(){
   Object.keys(LINE_LABELS).forEach(function(k){
     var ov = (job.overrides || {})[k];
     h += '<tr><td style="font-size:12px">' + esc(LINE_LABELS[k]) + '</td>'
-      + '<td style="font-size:12px;color:var(--app-dim)">' + pkr(m.parts[k] || 0) + '</td>'
+      + '<td style="font-size:12px;color:var(--app-dim)" data-auto="' + k + '">' + pkr(m.parts[k] || 0) + '</td>'
       + '<td><input class="n" data-ov="' + k + '" type="number" step="any" value="'
       + esc(ov === undefined ? '' : ov) + '" placeholder="auto"></td>'
       + '<td><input data-vd="' + k + '" value="' + esc((job.vendors || {})[k] || '')
@@ -900,25 +920,67 @@ function renderPanel(){
   document.getElementById('panel').innerHTML = h;
 }
 
+/* One entry per box style: how the blank is sized from L x W x H, how many
+   printed blanks make a box, and the words the documents use. Sizes are
+   estimating blanks, not dielines — the studio's dieline is always final. */
+function tuckFlat(L,W,H,f,t){ return {w: 2*(L+W) + f, h: H + 2*W + 2*t}; }
+var STYLES = {
+  'Straight Tuck End (STE)': {kind:'carton', flat:tuckFlat, why:'tuck end — height, two closure panels, two tuck flaps',
+    forming:'Die cut, creased, side-seam glued', about:'Folding carton: one printed blank, die cut, creased and side-seam glued. Both ends tuck.'},
+  'Reverse Tuck End (RTE)': {kind:'carton', flat:tuckFlat, why:'reverse tuck — same blank as STE, tucks on opposite faces',
+    forming:'Die cut, creased, side-seam glued', about:'Folding carton with the top and bottom tucks on opposite faces.'},
+  'Auto-Lock Bottom': {kind:'carton', flat:function(L,W,H,f,t){ return {w: 2*(L+W) + f, h: H + W + t + W + 10}; },
+    why:'crash lock — tuck top, lock bottom with its hooks', forming:'Die cut, creased, crash-lock bottom glued',
+    about:'Crash-lock (auto-lock) bottom: pops open ready to fill. Glued on the lock gluer, priced with the crash-lock pasting rate.'},
+  'Seal End': {kind:'carton', flat:function(L,W,H,f,t){ return {w: 2*(L+W) + f, h: H + 2*W + 10}; },
+    why:'seal end — full-overlap flaps glued both ends', forming:'Die cut, creased, side-seam glued, ends sealed on the line',
+    about:'Seal-end carton (cereal-box style): both ends glued shut by the packer.'},
+  'Sleeve': {kind:'carton', flat:function(L,W,H,f,t){ return {w: 2*(W+H) + f, h: L}; },
+    why:'sleeve — girth 2 × (W + H) plus glue flap, open along L', forming:'Die cut, creased, side-seam glued, open both ends',
+    about:'Open-ended sleeve that slides over a tray or product. L is the open direction.'},
+  'Pillow Box': {kind:'carton', flat:function(L,W,H,f,t){ return {w: 2*W + f, h: L + W}; },
+    why:'pillow — two faces plus curved end flaps', forming:'Die cut, curved-creased, side-seam glued',
+    about:'Pillow pack: two faces with curved creases. L is the length, W the face width.'},
+  'Gable Box': {kind:'carton', flat:function(L,W,H,f,t){ return {w: 2*(L+W) + f, h: H + W + 10 + 1.8*W + 20}; },
+    why:'gable — crash bottom, gable top and carry handle', forming:'Die cut, creased, crash-lock bottom glued, gable top',
+    about:'Gable-top carry box. Crash-lock bottom, priced with the crash-lock pasting rate.'},
+  'Window Carton': {kind:'carton', flat:tuckFlat, why:'tuck end with a die-cut window',
+    forming:'Die cut with window aperture, creased, side-seam glued',
+    about:'Tuck-end carton with a window. Add <b>Window patch</b> under extras for the film and patching.'},
+  'Rigid Two-Piece': {kind:'rigid', flat:function(L,W,H){ return {w: L + 2*H + 30, h: W + 2*H + 30}; }, pieces:2,
+    why:'base wrap — the lid wrap is the second blank', forming:'Die cut greyboard, wrapped by hand, corners finished',
+    about:'Rigid set-up box, base and lid. Greyboard core, printed wrap, hand assembly. Dimensions are the inside of the base.'},
+  'Rigid Magnetic': {kind:'rigid', flat:function(L,W,H){ return {w: L + 2*H + 30, h: 2*W + 3*H + 40}; }, pieces:1,
+    why:'one-piece book wrap — base, hinged lid and magnetic flap', forming:'Die cut greyboard, one-piece wrap, hand assembled, magnets set in',
+    about:'Book-style rigid box with a magnetic flap. Add <b>Magnetic closure</b> under extras for the magnets.'},
+  'Drawer / Matchbox': {kind:'rigid', flat:function(L,W,H){ return {w: L + 2*H + 30, h: W + 2*H + 30}; }, pieces:2,
+    why:'tray wrap — the outer sleeve is the second blank', forming:'Rigid tray wrapped by hand, printed sleeve glued',
+    about:'Slide-out drawer in a sleeve. Costed as a wrapped rigid tray plus a second printed blank for the sleeve.'},
+  'Rigid Tube': {kind:'rigid', flat:function(L,W,H){ return {w: 3.1416*L + 15, h: H + 30}; }, pieces:2,
+    why:'tube wrap — L is the diameter; the lid is the second blank', forming:'Spiral-wound core, wrapped by hand, capped ends',
+    about:'Round tube. Enter the diameter as L and W, the height as H. Estimated with the rigid model.'},
+  'Mailer / Roll-End': {kind:'corrugated', flat:function(L,W,H){ return {w: L + 4*H + 10, h: 2*W + 3*H + 10}; },
+    why:'roll-end mailer — one blank, litho-laminated on flute', forming:'Litho-laminated on flute, die cut, creased, supplied flat',
+    about:'E-commerce mailer. Printed sheet mounted on corrugated flute, self-locking, ships flat.'},
+  'Display Box (PDQ)': {kind:'corrugated', flat:function(L,W,H){ return {w: L + 2*H + 40, h: W + 3*H + 40}; },
+    why:'PDQ tray with header, litho-lam on flute', forming:'Litho-laminated on flute, die cut, creased, supplied flat',
+    about:'Counter display tray with a header card. Printed sheet mounted on flute.'}
+};
+function styleInfo(){ return STYLES[job.style] || STYLES['Straight Tuck End (STE)']; }
 function suggestedFlat(){
-  var L = n(job.len), W = n(job.wid), H = n(job.hgt);
-  if(isRigid(job)) return {w: L + 2*H + 30, h: W + 2*H + 30, pieces: 2,
-    why: 'wrap for the base — lid wrap is the second blank'};
-  return {w: 2*(L+W) + n(job.flap), h: H + 2*W + 2*n(job.tuck), pieces: 1,
-    why: 'tuck end — height + two closure panels + two tuck flaps'};
+  var st = styleInfo();
+  var r = st.flat(n(job.len), n(job.wid), n(job.hgt), n(job.flap), n(job.tuck));
+  return {w: Math.round(r.w), h: Math.round(r.h), pieces: st.pieces || 1, why: st.why};
 }
 function renderInfo(m){
   var imp = imposition(job);
   var sf = suggestedFlat();
   var warn = (m.warnings || []).map(function(w){ return '<div style="color:#D98B6A;margin-top:4px">⚠ ' + esc(w) + '</div>'; }).join('');
   var map = {
-    style: isRigid(job)
-        ? 'Rigid box: costed as a printed wrap over a greyboard core with hand assembly. '
-          + 'Dimensions are the inside of the base. Add <b>Magnetic closure</b> under extras if needed.'
-        : 'Folding carton: die cut, creased and side-seam glued from one printed blank.',
+    style: styleInfo().about,
     flat: 'Suggested (' + sf.why + '): <b>' + int(sf.w) + ' × ' + int(sf.h) + ' mm</b>'
         + (sf.pieces > 1 ? ', <b>' + sf.pieces + ' blanks</b> per box' : '')
-        + '. Override for sleeve, pillow or mailer styles.',
+        + '. An estimating blank — the final dieline may differ; type it over when you have it.',
     ups: (imp.ups > 0
         ? 'Printable area <b>' + int(imp.ew) + ' × ' + int(imp.eh) + ' mm</b> · <b>' + imp.ups
           + ' ups</b> ' + imp.orient + (imp.alt !== imp.ups ? ' (' + imp.alt + ' the other way)' : '')
@@ -965,13 +1027,20 @@ function masthead(title, meta){
   return h + '</dl></div></header>';
 }
 
-function forming(){
-  if(isRigid(job)) return 'Die cut greyboard, wrapped by hand, corners finished';
-  if(job.style === 'Auto-Lock Bottom') return 'Die cut, creased, crash-lock bottom glued';
-  if(job.style === 'Sleeve' || job.style === 'Pillow Box') return 'Die cut, creased, side-seam glued';
-  if(job.style === 'Mailer / Roll-End' || job.style === 'Display Box (PDQ)') return 'Die cut, creased, supplied flat for self-assembly';
-  return 'Die cut, creased, side-seam glued';
+function forming(){ return styleInfo().forming; }
+function boardWords(){
+  var b = job.board + ' ' + int(job.gsm) + ' gsm';
+  if(isRigid(job)) b = 'Greyboard core wrapped in ' + b;
+  if(job.flute && job.flute !== 'None') b += ', litho-laminated on ' + job.flute;
+  return b;
 }
+function packingWords(){
+  var k = styleInfo().kind;
+  if(k === 'rigid') return 'Assembled boxes, each sleeved, in lined export cartons';
+  if(k === 'corrugated') return 'Flat-packed in bundles, in export cartons';
+  return 'Flat-packed, lined export cartons';
+}
+var HS_BY_KIND = {carton:'4819.2000', rigid:'4819.5000', corrugated:'4819.1000'};
 function toolingWords(){
   var t = ['cutting die'];
   if(job.foil === 'Yes') t.push('foil block');
@@ -987,7 +1056,6 @@ function hsDesc(code){
 }
 function renderQuote(m){
   var fin = finishList();
-  var rigid = isRigid(job);
   var h = masthead('Quotation', {
     contactline: S('email') + ' &nbsp;·&nbsp; ' + S('phone'),
     rows: [['Ref', job.quote_no || '—'], ['Date', prettyDate(job.date)],
@@ -1004,11 +1072,11 @@ function renderQuote(m){
   h += '<div class="hr"></div><p class="eyebrow">Specification</p><dl class="spec">'
     + spec('Product', job.product, 'w2') + spec('Box style', job.style)
     + spec('Closed size', int(job.len) + ' × ' + int(job.wid) + ' × ' + int(job.hgt) + ' mm')
-    + spec('Board', (rigid ? 'Greyboard core wrapped in ' : '') + job.board + ' ' + int(job.gsm) + ' gsm')
+    + spec('Board', boardWords())
     + spec('Printing', int(job.col_f) + ' colour outside / ' + int(job.col_b) + ' colour inside')
     + spec('Lamination', job.lam)
     + spec('Cutting & forming', forming())
-    + spec('Packing', rigid ? 'Assembled boxes, each sleeved, in lined export cartons' : 'Flat-packed, lined export cartons')
+    + spec('Packing', packingWords())
     + (job.repeat === 'Yes' ? spec('Order type', 'Repeat order — tooling retained from your previous run') : '')
     + spec('Artwork', 'Print-ready PDF supplied by client · dieline supplied by us, free of charge', 'w3')
     + '</dl>';
@@ -1081,7 +1149,7 @@ function renderPi(m){
     + '<th style="width:52%">Description</th><th class="r" style="width:14%">Quantity</th>'
     + '<th class="r" style="width:16%">Unit price</th><th class="r" style="width:18%">Amount</th>'
     + '</tr></thead><tbody><tr><td>' + esc(job.product || '—') + ' — ' + esc(job.style)
-    + '<span class="sub">' + esc(job.board) + ' ' + int(job.gsm) + ' gsm · '
+    + '<span class="sub">' + esc(boardWords()) + ' · '
     + int(job.col_f) + 'C + ' + int(job.col_b) + 'C'
     + (fin.length ? ' · ' + fin.map(esc).join(' · ') : '') + '</span>'
     + '<span class="sub">HS Code ' + esc(job.hs_code) + ' — ' + hsDesc(job.hs_code) + '</span>'
@@ -1142,6 +1210,10 @@ function renderAll(){
   document.getElementById('doc-pi').innerHTML = renderPi(m);
   renderInfo(m);
   renderReadout(m);
+  /* keep the Auto PKR column of the cost lines live without rebuilding the panel */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-auto]'), function(td){
+    td.textContent = pkr((m.parts || {})[td.getAttribute('data-auto')] || 0);
+  });
   return m;
 }
 
@@ -1178,10 +1250,19 @@ document.getElementById('panel').addEventListener('change', function(e){
   if(k && e.target.tagName === 'SELECT'){
     job[k] = e.target.value;
     if(k === 'style'){
-      /* rigid set-up boxes classify under 4819.50, folding cartons under 4819.20 */
-      if(isRigid(job) && job.hs_code === '4819.2000') job.hs_code = '4819.5000';
-      if(!isRigid(job) && job.hs_code === '4819.5000') job.hs_code = '4819.2000';
+      var kind = styleInfo().kind;
+      /* HS follows the construction unless the user typed their own code */
+      var known = Object.keys(HS_BY_KIND).map(function(x){ return HS_BY_KIND[x]; });
+      if(known.indexOf(job.hs_code) > -1 || !job.hs_code) job.hs_code = HS_BY_KIND[kind];
       var hs = document.getElementById('i_hs_code'); if(hs) hs.value = job.hs_code;
+      /* corrugated styles need a flute; leaving them drops it */
+      if(kind === 'corrugated' && (!job.flute || job.flute === 'None')) job.flute = 'E-flute';
+      if(kind !== 'corrugated' && job.flute !== 'None') job.flute = 'None';
+      var fe = document.getElementById('i_flute'); if(fe) fe.value = job.flute;
+      /* the blank follows the style — a fresh size for the new construction */
+      var sf = suggestedFlat();
+      job.flat_w = sf.w; job.flat_h = sf.h; job.pieces = sf.pieces;
+      ['flat_w','flat_h','pieces'].forEach(function(f){ var el = document.getElementById('i_' + f); if(el) el.value = job[f]; });
     }
     renderAll();
   }

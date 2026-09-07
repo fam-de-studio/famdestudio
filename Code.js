@@ -39,7 +39,7 @@ var FIELDS = [
   /* v2 broker columns — appended at the end so old rows stay aligned */
   'repeat', 'incoterm', 'duty_pct', 'vat_pct', 'overrides', 'vendors', 'cbm_override',
   /* v3 estimator columns */
-  'tuck', 'pieces', 'grain'
+  'tuck', 'pieces', 'grain', 'flute'
 ];
 
 /* Append any missing FIELDS columns to the Quotes header. New columns go at
@@ -118,7 +118,8 @@ function setupStorage() {
     ['uv_setup', 3000], ['uv_run', 3.5],
     ['foil_block', 45], ['foil_run', 2.5],
     ['emb_block', 60], ['emb_run', 2],
-    ['dc_run', 1800], ['dc_min', 2500], ['paste', 2.5], ['pack', 1.5],
+    ['dc_run', 1800], ['dc_min', 2500], ['paste', 2.5], ['paste_lock', 5], ['pack', 1.5],
+    ['flute_e', 95], ['flute_b', 110], ['flute_eb', 180], ['mount', 6],
     ['carton_pkr', 220], ['carton_cbm', 0.06],
     ['rigid_kg', 260], ['rigid_gsm', 1200], ['rigid_make', 45],
     ['x_window', 6], ['x_ribbon', 8], ['x_magnet', 25], ['x_edge', 10], ['x_braille', 4],

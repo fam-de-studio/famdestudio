@@ -11,7 +11,8 @@ const { computeCost, costForQty, imposition } = engine
 const RATES = {
   plate: 1200, print: 900, print_min: 1000, proof: 3500, uv_setup: 3000, uv_run: 3.5,
   foil_block: 45, foil_run: 2.5, emb_block: 60, emb_run: 2,
-  dc_run: 1800, dc_min: 2500, paste: 2.5, pack: 1.5,
+  dc_run: 1800, dc_min: 2500, paste: 2.5, paste_lock: 5, pack: 1.5,
+  flute_e: 95, flute_b: 110, flute_eb: 180, mount: 6,
   carton_pkr: 220, carton_cbm: 0.06,
   rigid_kg: 260, rigid_gsm: 1200, rigid_make: 45,
   x_window: 6, x_ribbon: 8, x_magnet: 25, x_edge: 10, x_braille: 4,
@@ -110,6 +111,18 @@ eq('rigid: making line', mRig.parts.make, 5000 * 45, 0.01)
 eq('rigid: no carton pasting', mRig.parts.paste, 0, 0.001)
 ok('rigid ships assembled: more CBM than flat', mRig.cbmAuto > m1.cbmAuto)
 eq('folding carton has no rigid lines', m1.parts.core + m1.parts.make, 0, 0.001)
+
+// ── Crash-lock pasting, corrugated litho-lam ──
+eq('straight-line pasting', m1.parts.paste, 5000 * 2.5, 0.01)
+eq('crash-lock pasting', computeCost({ ...JOB, style: 'Auto-Lock Bottom' }, CTX).parts.paste, 5000 * 5, 0.01)
+eq('gable uses the lock gluer too', computeCost({ ...JOB, style: 'Gable Box' }, CTX).parts.paste, 5000 * 5, 0.01)
+eq('no flute -> no flute or mounting lines', m1.parts.flute + m1.parts.mount, 0, 0.001)
+const mFl = computeCost({ ...JOB, style: 'Mailer / Roll-End', flute: 'E-flute' }, CTX)
+eq('flute sheet = gross x sheet m² x rate', mFl.parts.flute, mFl.gross * (635 * 965 / 1e6) * 95, 0.01)
+eq('mounting = gross x rate', mFl.parts.mount, mFl.gross * 6, 0.01)
+ok('flute adds weight', mFl.boxKg > m1.boxKg)
+ok('flute adds volume', mFl.cbmAuto > m1.cbmAuto)
+eq('unknown flute name is ignored', computeCost({ ...JOB, flute: 'Z-flute' }, CTX).parts.flute, 0, 0.001)
 
 // ── Cartons, weight, volume ──
 eq('carton count from volume', m1.cartons, Math.ceil(m1.cbmUsed / 0.06), 0)
