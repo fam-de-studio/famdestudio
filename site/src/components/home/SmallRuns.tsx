@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Reveal } from "@/components/ui/Reveal";
 import { Eyebrow } from "@/components/ui/Eyebrow";
+import { Words } from "@/components/ui/Words";
 import { Parallax } from "@/components/ui/Parallax";
 import img from "@/images/hero-03.png";
 
@@ -28,9 +29,9 @@ export function SmallRuns() {
           <Reveal>
             <Eyebrow>Positioning</Eyebrow>
             <h2 id="small-runs-title" className="t-display mt-8">
-              Small runs.
+              <Words text="Small runs." />
               <br />
-              No <span className="t-italic foil">shortcuts.</span>
+              <Words text="No" start={2} /> <span className="w" style={{ ["--w" as string]: 3 }}><i className="t-italic foil">shortcuts.</i></span>
             </h2>
           </Reveal>
           <Reveal index={1} className="mt-12 max-w-xl space-y-6">

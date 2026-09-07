@@ -11,6 +11,11 @@ npm run build    # production build (all pages pre-rendered)
 npm start
 ```
 
+## Versions
+
+- **v2 (current, `main`)**: preloader, scroll-story hero, counted stats, sticky finishing gallery, 3D folding carton, section indicator, giant footer wordmark.
+- **v1** is kept as the `site-v1` branch and tag. To go back: `git checkout site-v1 -- site` then commit, or `git revert` the v2 commit.
+
 ## Where to edit things
 
 | What | File |

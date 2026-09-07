@@ -1,0 +1,439 @@
+/* =====================================================================
+   V2 additions: preloader, grain, word reveal, section nav, hero story,
+   stats, sticky finishing gallery, 3D folding carton, giant footer.
+   ===================================================================== */
+
+/* ---------- Preloader curtain ---------- */
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  background: var(--color-ink);
+  color: var(--color-text);
+  transition:
+    transform 0.9s var(--ease-out-expo),
+    visibility 0s linear 0.9s;
+}
+.preloader[data-done="true"] {
+  transform: translateY(-100%);
+  visibility: hidden;
+}
+.preloader .pl-mark {
+  font-family: var(--font-serif);
+  font-size: clamp(3rem, 9vw, 7rem);
+  letter-spacing: 0.14em;
+  line-height: 1;
+}
+.preloader .pl-sub {
+  margin-top: 0.75rem;
+  color: var(--color-muted);
+}
+.preloader .pl-bar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 100%;
+  background: var(--color-yellow);
+  transform-origin: left;
+  transform: scaleX(var(--p, 0));
+}
+.preloader .pl-count {
+  position: absolute;
+  right: var(--gutter);
+  bottom: 1.25rem;
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-yellow);
+}
+html[data-loading="true"] {
+  overflow: hidden;
+}
+
+/* ---------- Film grain ---------- */
+.grain-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  pointer-events: none;
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+@media print {
+  .grain-layer,
+  .preloader,
+  .section-nav {
+    display: none !important;
+  }
+}
+
+/* ---------- Word-by-word mask reveal ---------- */
+.w {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+.w > i {
+  display: inline-block;
+  font-style: inherit;
+  transform: translateY(110%);
+  transition: transform 1.1s var(--ease-out-expo);
+  transition-delay: calc(var(--w, 0) * 60ms + var(--i, 0) * 80ms);
+}
+.is-in .w > i,
+.w.is-in > i {
+  transform: none;
+}
+
+/* ---------- Outline display type ---------- */
+.t-outline {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(236, 232, 225, 0.55);
+}
+.t-outline-yellow {
+  color: transparent;
+  -webkit-text-stroke: 1px var(--color-yellow);
+}
+.surface-ivory .t-outline {
+  -webkit-text-stroke: 1px rgba(20, 20, 20, 0.45);
+}
+
+/* ---------- Section nav (desktop) ---------- */
+.section-nav {
+  position: fixed;
+  right: 1.25rem;
+  top: 50%;
+  z-index: 40;
+  transform: translateY(-50%);
+  display: none;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+@media (min-width: 1280px) {
+  .section-nav {
+    display: flex;
+  }
+}
+.section-nav a {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  color: var(--color-muted);
+  text-decoration: none;
+}
+.section-nav a span {
+  font-size: 0.5625rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  background: var(--color-ink);
+  color: var(--color-yellow);
+  padding: 3px 7px;
+  border: 1px solid var(--color-line);
+  opacity: 0;
+  transform: translateX(6px);
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s var(--ease-out-expo);
+}
+.section-nav a i {
+  display: block;
+  width: 14px;
+  height: 1px;
+  background: currentColor;
+  transition:
+    width 0.3s var(--ease-out-expo),
+    background 0.3s ease;
+}
+.section-nav a:hover span,
+.section-nav a[aria-current="true"] span {
+  opacity: 1;
+  transform: none;
+}
+.section-nav a[aria-current="true"] {
+  color: var(--color-yellow);
+}
+.section-nav a[aria-current="true"] i {
+  width: 28px;
+}
+
+/* ---------- Hero story ---------- */
+.hero-story {
+  height: 230vh;
+}
+.hero-story .hs-panel {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  overflow: hidden;
+}
+.hero-story .hs-img {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: scale(1.08);
+  transition:
+    opacity 0.9s ease,
+    transform 1.6s var(--ease-out-expo);
+  will-change: opacity, transform;
+}
+.hero-story .hs-img[data-active="true"] {
+  opacity: 1;
+  transform: scale(1);
+}
+.hero-story .hs-word {
+  position: relative;
+  display: inline-block;
+  min-width: 7ch;
+}
+.hero-story .hs-word span {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  transform: translateY(0.35em);
+  transition:
+    opacity 0.5s ease,
+    transform 0.7s var(--ease-out-expo);
+  white-space: nowrap;
+}
+.hero-story .hs-word span[data-active="true"] {
+  opacity: 1;
+  transform: none;
+}
+.hero-story .hs-word span:first-child {
+  position: relative;
+}
+.hero-story .hs-ring {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(245, 197, 24, 0.35);
+  display: grid;
+  place-items: center;
+}
+.hero-story .hs-ring i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-yellow);
+  animation: pulse 2.2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.8);
+    opacity: 0.35;
+  }
+}
+
+/* ---------- Stats ---------- */
+.stat {
+  border-top: 1px solid var(--color-line);
+  padding-top: 1.5rem;
+}
+.stat b {
+  display: block;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(4rem, 8vw, 7.5rem);
+  line-height: 0.9;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.stat b small {
+  font-size: 0.45em;
+  color: var(--color-yellow);
+  vertical-align: top;
+  margin-left: 0.1em;
+}
+
+/* ---------- Sticky finishing gallery ---------- */
+.fin-sticky {
+  position: sticky;
+  top: 5rem;
+  height: calc(100dvh - 7rem);
+}
+.fin-sticky .fin-img {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: scale(1.04);
+  transition:
+    opacity 0.8s ease,
+    transform 1.4s var(--ease-out-expo);
+}
+.fin-sticky .fin-img[data-active="true"] {
+  opacity: 1;
+  transform: scale(1);
+}
+.fin-item {
+  min-height: 62vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-top: 1px solid var(--color-line);
+  transition: opacity 0.5s ease;
+}
+@media (min-width: 1024px) {
+  .fin-item[data-active="false"] h3,
+  .fin-item[data-active="false"] .fin-phys {
+    color: var(--color-muted);
+  }
+}
+.fin-item[data-active="true"] .fin-num {
+  color: var(--color-yellow);
+}
+
+/* ---------- 3D folding carton ---------- */
+.fold-stage {
+  perspective: 1600px;
+  perspective-origin: 50% 45%;
+  min-height: inherit;
+}
+.fold-box {
+  position: relative;
+  width: var(--fw);
+  height: var(--fh);
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.15s linear;
+}
+.fold-box .pn {
+  position: absolute;
+  transform-style: preserve-3d;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.35), rgba(0, 0, 0, 0.1)),
+    #e9e2d6;
+  border: 1px solid rgba(20, 20, 20, 0.35);
+  box-sizing: border-box;
+}
+.fold-box .pn.crease {
+  border-style: dashed;
+}
+.fold-box .pn .mark {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-family: var(--font-serif);
+  letter-spacing: 0.14em;
+  color: rgba(20, 20, 20, 0.75);
+}
+.fold-box .pn .rule {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  height: 1px;
+  background: var(--color-yellow);
+}
+.fold-box .front {
+  left: 0;
+  top: 0;
+  width: var(--fw);
+  height: var(--fh);
+}
+.fold-box .side-l {
+  left: 0;
+  top: 0;
+  width: var(--fd);
+  height: var(--fh);
+  transform-origin: right center;
+  transform: translateX(calc(var(--fd) * -1)) rotateY(calc(var(--a, 0deg) * -1));
+}
+.fold-box .side-r {
+  left: var(--fw);
+  top: 0;
+  width: var(--fd);
+  height: var(--fh);
+  transform-origin: left center;
+  transform: rotateY(var(--a, 0deg));
+}
+.fold-box .back {
+  top: 0;
+  height: var(--fh);
+}
+.fold-box .flap-t {
+  left: 0;
+  top: 0;
+  width: var(--fw);
+  height: var(--fd);
+  transform-origin: center bottom;
+  transform: translateY(calc(var(--fd) * -1)) rotateX(var(--a, 0deg));
+}
+.fold-box .flap-b {
+  left: 0;
+  top: var(--fh);
+  width: var(--fw);
+  height: var(--fd);
+  transform-origin: center top;
+  transform: rotateX(calc(var(--a, 0deg) * -1));
+}
+.fold-box .tuck {
+  left: 0;
+  top: 0;
+  width: var(--fw);
+  height: calc(var(--fd) * 0.6);
+  border-radius: 0 0 40% 40% / 0 0 100% 100%;
+  transform-origin: center bottom;
+  transform: translateY(calc(var(--fd) * -1.6)) rotateX(var(--a, 0deg));
+}
+
+/* ---------- Giant footer wordmark ---------- */
+.foot-mark {
+  font-family: var(--font-serif);
+  font-size: clamp(4.5rem, 17vw, 17rem);
+  line-height: 0.85;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(236, 232, 225, 0.35);
+  transition: color 0.6s ease;
+}
+.foot-mark:hover {
+  color: var(--color-yellow);
+  -webkit-text-stroke: 1px var(--color-yellow);
+}
+
+@media (hover: hover) {
+  .btn-yellow {
+    transition:
+      opacity 0.2s ease,
+      transform 0.3s var(--ease-out-expo);
+  }
+  .btn-yellow:hover {
+    transform: translateY(-1px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .w > i {
+    transform: none;
+    transition: none;
+  }
+  .hero-story .hs-img,
+  .fin-sticky .fin-img {
+    transition: opacity 0.2s ease;
+    transform: none;
+  }
+  .hero-story .hs-ring i {
+    animation: none;
+  }
+  .fold-box {
+    transition: none;
+  }
+  .preloader {
+    transition: none;
+  }
+}

@@ -1,19 +1,26 @@
 import Image from "next/image";
 import { Reveal } from "@/components/ui/Reveal";
 import { Eyebrow } from "@/components/ui/Eyebrow";
+import { Words } from "@/components/ui/Words";
 import img from "@/images/fam-de-studio-02.jpg";
+import img2 from "@/images/rigid-box-corner-detail.jpg";
 
 export function Intro() {
   return (
-    <section className="surface-ivory section-y" aria-labelledby="intro-title">
-      <div className="container-x">
+    <section id="intro" className="relative scroll-mt-20 overflow-hidden bg-ink section-y" aria-labelledby="intro-title">
+      {/* giant outlined year behind the composition */}
+      <div aria-hidden className="pointer-events-none absolute -right-8 top-10 select-none lg:right-[8vw]">
+        <span className="t-outline font-serif text-[clamp(10rem,28vw,30rem)] leading-none opacity-30">98</span>
+      </div>
+
+      <div className="container-x relative">
         <div className="grid gap-12 lg:grid-cols-12 lg:gap-8">
           <Reveal className="lg:col-span-7">
-            <Eyebrow>Introduction</Eyebrow>
+            <Eyebrow>The studio</Eyebrow>
             <h2 id="intro-title" className="t-h1 mt-8">
-              Design is only
+              <Words text="Design is only" />
               <br />
-              the <span className="t-italic">beginning.</span>
+              <Words text="the" start={3} /> <span className="w" style={{ ["--w" as string]: 4 }}><i className="t-italic">beginning.</i></span>
             </h2>
           </Reveal>
 
@@ -27,15 +34,13 @@ export function Intro() {
                 From structural development and artwork to print processes and luxury finishing, every detail is
                 considered with production in mind.
               </p>
-              <p className="t-body text-muted">
-                The result is packaging that doesn&rsquo;t simply look premium. It feels intentional.
-              </p>
+              <p className="t-body text-muted">The result is packaging that doesn&rsquo;t simply look premium. It feels intentional.</p>
             </Reveal>
           </div>
         </div>
 
-        <div className="mt-20 grid items-end gap-10 lg:mt-28 lg:grid-cols-12 lg:gap-8">
-          <Reveal variant="image" className="lg:col-span-7 lg:col-start-2">
+        <div className="mt-20 grid items-end gap-6 lg:mt-28 lg:grid-cols-12 lg:gap-8">
+          <Reveal variant="image" className="sheen hover-zoom overflow-hidden lg:col-span-7">
             <Image
               src={img}
               alt="A square soft-touch black rigid box with a blind-debossed FAM De Studio mark, lid resting ajar to show its ivory interior"
@@ -44,13 +49,14 @@ export function Intro() {
               className="aspect-[4/3] w-full object-cover"
             />
           </Reveal>
-
-          <Reveal index={2} className="lg:col-span-3 lg:col-start-10 lg:pb-8">
-            <p className="t-num text-[clamp(4.5rem,9vw,8rem)] leading-none">25+</p>
-            <p className="t-eyebrow mt-3 text-champagne">Years</p>
-            <p className="t-small mt-4 max-w-[16rem] text-muted">
-              Design and print experience, from the first offset press in 1998 to luxury finishing today.
-            </p>
+          <Reveal variant="image" index={1} className="sheen hover-zoom overflow-hidden lg:col-span-4 lg:col-start-9 lg:mb-16">
+            <Image
+              src={img2}
+              alt="Corner of a navy rigid box with a debossed frame and gold foil wordmark, showing the wrapped board edge"
+              sizes="(min-width: 1024px) 30vw, 100vw"
+              placeholder="blur"
+              className="aspect-[4/5] w-full object-cover"
+            />
           </Reveal>
         </div>
       </div>

@@ -4,7 +4,7 @@ import { process } from "@/content/studio";
 
 export function Process() {
   return (
-    <section className="surface-ivory section-y" aria-labelledby="process-title">
+    <section id="process" className="surface-ivory section-y scroll-mt-20" aria-labelledby="process-title">
       <div className="container-x">
         <Reveal className="grid gap-8 lg:grid-cols-12">
           <div className="lg:col-span-7">

@@ -1,5 +1,6 @@
 import { Hero } from "@/components/home/Hero";
 import { Intro } from "@/components/home/Intro";
+import { Stats } from "@/components/home/Stats";
 import { Marquee } from "@/components/home/Marquee";
 import { Expertise } from "@/components/home/Expertise";
 import { SelectedWork } from "@/components/home/SelectedWork";
@@ -42,6 +43,7 @@ export default function HomePage() {
       <Hero />
       <Marquee />
       <Intro />
+      <Stats />
       <Expertise />
       <SelectedWork />
       <Finishing />

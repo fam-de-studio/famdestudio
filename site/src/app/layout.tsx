@@ -6,6 +6,8 @@ import { Footer } from "@/components/site/Footer";
 import { Cursor } from "@/components/site/Cursor";
 import { ScrollProgress } from "@/components/site/ScrollProgress";
 import { ImageGuard } from "@/components/site/ImageGuard";
+import { Preloader } from "@/components/site/Preloader";
+import { SectionNav } from "@/components/site/SectionNav";
 import "./globals.css";
 
 const instrument = Instrument_Serif({
@@ -69,12 +71,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Skip to content
         </a>
+        <Preloader />
         <ScrollProgress />
+        <SectionNav />
         <Nav />
         <main id="main">{children}</main>
         <Footer />
         <Cursor />
         <ImageGuard />
+        <div className="grain-layer" aria-hidden />
       </body>
     </html>
   );

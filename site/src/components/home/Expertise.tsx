@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Reveal } from "@/components/ui/Reveal";
 import { Eyebrow } from "@/components/ui/Eyebrow";
+import { Words } from "@/components/ui/Words";
 import { expertise, formats } from "@/content/studio";
 import img from "@/images/folding-carton-collection-02.jpg";
 
@@ -19,8 +20,8 @@ export function Expertise() {
 
         <Reveal index={1} className="mt-10 lg:mt-14">
           <p className="t-display max-w-6xl text-[clamp(2.5rem,6.2vw,6.5rem)]">
-            Packaging, understood
-            <br className="hidden md:block" /> from <span className="t-italic">every</span> angle.
+            <Words text="Packaging, understood" />
+            <br className="hidden md:block" /> <Words text="from" start={2} /> <span className="w" style={{ ["--w" as string]: 3 }}><i className="t-italic t-outline-yellow">every</i></span> <Words text="angle." start={4} />
           </p>
         </Reveal>
 

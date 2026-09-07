@@ -1,18 +1,35 @@
+"use client";
+
 import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import { Reveal } from "@/components/ui/Reveal";
 import { Eyebrow } from "@/components/ui/Eyebrow";
+import { Words } from "@/components/ui/Words";
 import { finishes } from "@/content/finishes";
 
 /**
- * The tactile showcase. Large close-ups, each captioned like a swatch card:
- * name, what the hand feels, and a short technical note.
- * Layout alternates: large finishes span 8 columns with the note beside;
- * standard finishes sit in a 2-up grid.
+ * The art of finishing as a sticky gallery: the close-up on the left stays
+ * pinned and crossfades while the nine finishes scroll past on the right.
+ * Under lg the same content stacks image-then-caption.
  */
 export function Finishing() {
-  const large = finishes.filter((f) => f.size === "large");
-  const standard = finishes.filter((f) => f.size === "standard");
-  const [foil, metal, rigid] = large;
+  const [active, setActive] = useState(0);
+  const itemsRef = useRef<(HTMLLIElement | null)[]>([]);
+
+  useEffect(() => {
+    const els = itemsRef.current.filter(Boolean) as HTMLLIElement[];
+    if (!els.length) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) setActive(Number((e.target as HTMLElement).dataset.i));
+        }
+      },
+      { rootMargin: "-40% 0px -40% 0px", threshold: 0 },
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
 
   return (
     <section id="finishing" className="section-y scroll-mt-20 border-t border-line bg-ink-2" aria-labelledby="finishing-title">
@@ -21,108 +38,56 @@ export function Finishing() {
           <div className="lg:col-span-7">
             <Eyebrow>Finishing</Eyebrow>
             <h2 id="finishing-title" className="t-h1 mt-8">
-              The art of <span className="t-italic foil">finishing</span>
+              <Words text="The art of" /> <span className="w"><i className="t-italic foil">finishing</i></span>
             </h2>
           </div>
           <p className="t-lead text-muted lg:col-span-4 lg:col-start-9 lg:pt-4">
-            The surface is where a box is judged. Under the hand, in raking light, at the moment of opening. These
-            are the processes the studio specifies, proofs and supervises.
+            The surface is where a box is judged: under the hand, in raking light, at the moment of opening. Nine
+            processes the studio specifies, proofs and stands beside.
           </p>
         </Reveal>
 
-        {/* 01 — Hot foil, hero of the section */}
-        <FeatureRow finish={foil} index={0} />
+        <div className="mt-16 grid gap-10 lg:mt-24 lg:grid-cols-12 lg:gap-12">
+          {/* Sticky image (desktop) */}
+          <div className="hidden lg:col-span-7 lg:block">
+            <div className="fin-sticky overflow-hidden bg-ink">
+              {finishes.map((f, i) => (
+                <div key={f.slug} className="fin-img" data-active={i === active}>
+                  <Image src={f.image} alt={f.alt} fill sizes="(min-width: 1024px) 58vw, 100vw" placeholder="blur" className="object-cover" />
+                </div>
+              ))}
+              <div className="absolute bottom-6 left-6 flex items-center gap-4">
+                <span className="t-num text-sm text-yellow">{String(active + 1).padStart(2, "0")}</span>
+                <span className="h-px w-10 bg-yellow/60" />
+                <span className="t-eyebrow text-text/80">{finishes[active].name}</span>
+              </div>
+            </div>
+          </div>
 
-        {/* 2-up grid: emboss / deboss / spot uv / textured uv */}
-        <div className="mt-20 grid gap-x-8 gap-y-16 md:grid-cols-2 lg:mt-28">
-          {standard.slice(0, 4).map((f, i) => (
-            <Swatch key={f.slug} finish={f} index={i % 2} className={i % 2 === 1 ? "md:pt-24" : ""} />
-          ))}
+          {/* Captions */}
+          <ol className="lg:col-span-5">
+            {finishes.map((f, i) => (
+              <li
+                key={f.slug}
+                ref={(el) => {
+                  itemsRef.current[i] = el;
+                }}
+                data-i={i}
+                data-active={i === active}
+                className="fin-item py-10"
+              >
+                <div className="sheen mb-6 overflow-hidden lg:hidden">
+                  <Image src={f.image} alt={f.alt} sizes="100vw" placeholder="blur" className="aspect-[4/3] w-full object-cover" />
+                </div>
+                <span className="fin-num t-num text-sm text-muted">{String(i + 1).padStart(2, "0")}</span>
+                <h3 className="t-h2 mt-3 uppercase tracking-[0.04em] transition-colors duration-500">{f.name}</h3>
+                <p className="fin-phys t-serif mt-3 text-xl italic leading-snug text-yellow transition-colors duration-500">{f.physical}</p>
+                <p className="t-body mt-4 max-w-md text-muted">{f.description}</p>
+              </li>
+            ))}
+          </ol>
         </div>
-
-        {/* Metalized */}
-        <FeatureRow finish={metal} index={0} flip />
-
-        {/* drip-off / soft touch */}
-        <div className="mt-20 grid gap-x-8 gap-y-16 md:grid-cols-2 lg:mt-28">
-          {standard.slice(4).map((f, i) => (
-            <Swatch key={f.slug} finish={f} index={i} className={i === 1 ? "md:pt-24" : ""} />
-          ))}
-        </div>
-
-        {/* Rigid box construction */}
-        <FeatureRow finish={rigid} index={0} />
       </div>
     </section>
-  );
-}
-
-function FeatureRow({
-  finish,
-  index,
-  flip = false,
-}: {
-  finish: (typeof finishes)[number];
-  index: number;
-  flip?: boolean;
-}) {
-  return (
-    <div className="mt-20 grid items-end gap-8 lg:mt-28 lg:grid-cols-12">
-      <Reveal
-        variant="image"
-        index={index}
-        className={`sheen hover-zoom overflow-hidden lg:col-span-8 ${flip ? "lg:order-2 lg:col-start-5" : ""}`}
-      >
-        <Image
-          src={finish.image}
-          alt={finish.alt}
-          sizes="(min-width: 1024px) 66vw, 100vw"
-          placeholder="blur"
-          className="aspect-[4/3] w-full object-cover"
-        />
-      </Reveal>
-      <Reveal index={index + 1} className={`lg:col-span-4 lg:pb-2 ${flip ? "lg:order-1" : ""}`}>
-        <Caption finish={finish} />
-      </Reveal>
-    </div>
-  );
-}
-
-function Swatch({
-  finish,
-  index,
-  className = "",
-}: {
-  finish: (typeof finishes)[number];
-  index: number;
-  className?: string;
-}) {
-  return (
-    <div className={className}>
-      <Reveal variant="image" index={index} className="sheen hover-zoom overflow-hidden">
-        <Image
-          src={finish.image}
-          alt={finish.alt}
-          sizes="(min-width: 768px) 50vw, 100vw"
-          placeholder="blur"
-          className="aspect-[4/3] w-full object-cover"
-        />
-      </Reveal>
-      <Reveal index={index + 1} className="mt-6">
-        <Caption finish={finish} compact />
-      </Reveal>
-    </div>
-  );
-}
-
-function Caption({ finish, compact = false }: { finish: (typeof finishes)[number]; compact?: boolean }) {
-  return (
-    <div className="crop-marks border-t border-line pt-5 text-text">
-      <h3 className={`${compact ? "t-h3" : "t-h2"} uppercase tracking-[0.04em]`}>{finish.name}</h3>
-      <p className="t-serif mt-3 text-lg italic leading-snug text-champagne">{finish.physical}</p>
-      <p className={`t-small mt-4 text-muted ${compact ? "max-w-md" : "max-w-lg sm:text-[0.9375rem]"}`}>
-        {finish.description}
-      </p>
-    </div>
   );
 }

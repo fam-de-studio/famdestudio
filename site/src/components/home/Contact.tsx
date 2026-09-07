@@ -1,5 +1,6 @@
 import { Reveal } from "@/components/ui/Reveal";
 import { Eyebrow } from "@/components/ui/Eyebrow";
+import { Words } from "@/components/ui/Words";
 import { site } from "@/content/site";
 import { InquiryForm } from "./InquiryForm";
 
@@ -12,7 +13,7 @@ export function Contact() {
             <Reveal>
               <Eyebrow>Contact</Eyebrow>
               <h2 id="contact-title" className="t-h1 mt-8">
-                Let&rsquo;s make something <span className="t-italic foil-dark">exceptional.</span>
+                <Words text="Let’s make something" /> <span className="w" style={{ ["--w" as string]: 3 }}><i className="t-italic foil-dark">exceptional.</i></span>
               </h2>
               <p className="t-lead mt-8 max-w-md text-muted">
                 Tell us about your product, quantity and the finish you have in mind.
