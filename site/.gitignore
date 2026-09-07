@@ -45,6 +45,3 @@ next-env.d.ts
 
 # generated responsive images (npm run images)
 /public/img/
-
-# local docket storage (dev only)
-/.data/
