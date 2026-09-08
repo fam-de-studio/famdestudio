@@ -39,8 +39,25 @@ var FIELDS = [
   /* v2 broker columns — appended at the end so old rows stay aligned */
   'repeat', 'incoterm', 'duty_pct', 'vat_pct', 'overrides', 'vendors', 'cbm_override',
   /* v3 estimator columns */
-  'tuck', 'pieces', 'grain', 'flute'
+  'tuck', 'pieces', 'grain', 'flute',
+  /* v4 — WhatsApp-first client contact */
+  'client_phone'
 ];
+
+var CLIENT_COLS = ['name', 'contact', 'country', 'email', 'address', 'phone'];
+
+/* Append any missing client columns (e.g. phone) to the Clients header. */
+function migrateClientsHeader_() {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TAB.CLIENTS);
+  if (!sh || sh.getLastRow() < 1) return;
+  var head = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0]
+    .map(function (h) { return String(h).trim(); })
+    .filter(function (h) { return h !== ''; });
+  var missing = CLIENT_COLS.filter(function (c) { return head.indexOf(c) === -1; });
+  if (!missing.length) return;
+  sh.getRange(1, head.length + 1, 1, missing.length).setValues([missing]);
+  header_(sh, head.length + missing.length);
+}
 
 /* Append any missing FIELDS columns to the Quotes header. New columns go at
    the end, so rows written by older versions keep their alignment. */
@@ -90,18 +107,19 @@ function showAppUrl() {
 function setupStorage() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   migrateQuotesHeader_();
+  migrateClientsHeader_();
 
   kvSheet_(ss, TAB.SET, ['key', 'value'], [
-    ['company', 'Meridian Print & Pack'],
-    ['tagline', 'Decorative Print Specialists · Lahore'],
-    ['address', '12-C Gulberg III, Lahore 54660, Pakistan'],
-    ['email', 'hello@meridianprintpack.com'],
-    ['phone', '+92 300 0000000'],
-    ['whatsapp', '+92 300 0000000'],
-    ['ntn', '0000000-0'],
+    ['company', 'FAM De Studio'],
+    ['tagline', 'Luxury Packaging Design & Production · Lahore'],
+    ['address', 'Lahore, Pakistan'],
+    ['email', 'famdestudio@gmail.com'],
+    ['phone', '+92 324 1691194'],
+    ['whatsapp', '+92 324 1691194'],
+    ['ntn', ''],
     ['rep_name', 'Mehboob Ahmed'],
-    ['rep_role', 'Director — Production'],
-    ['bank_benef', 'Meridian Print & Pack'],
+    ['rep_role', 'Founder — Design & Production'],
+    ['bank_benef', 'FAM De Studio'],
     ['bank_name', ''],
     ['bank_branch', ''],
     ['bank_iban', ''],
@@ -126,7 +144,8 @@ function setupStorage() {
     ['waste', 0.07], ['setup_sheets', 200],
     ['fx', 285], ['margin', 0.4],
     ['fr_dhl', 9], ['fr_air', 5.5], ['fr_sea', 180],
-    ['docs', 120], ['ins_pct', 0.005], ['ddp_fee', 25], ['bank_pct', 0.02]
+    ['docs', 120], ['ins_pct', 0.005], ['ddp_fee', 25], ['bank_pct', 0.02],
+    ['sample_usd', 150]
   ]);
 
   tableSheet_(ss, TAB.BOARDS, ['name', 'pkr_per_kg', 'note'], [
@@ -149,9 +168,9 @@ function setupStorage() {
     ['Anti-Scuff Matte', 0.022, 'Matte that resists finger marks']
   ]);
 
-  tableSheet_(ss, TAB.CLIENTS, ['name', 'contact', 'country', 'email', 'address'], [
+  tableSheet_(ss, TAB.CLIENTS, CLIENT_COLS, [
     ['Aurelia Skincare Ltd', 'Hannah Vance, Founder', 'Bristol, United Kingdom',
-      'hannah@aureliaskincare.co.uk', 'Unit 4, Feeder Road, Bristol BS2 0SB']
+      'hannah@aureliaskincare.co.uk', 'Unit 4, Feeder Road, Bristol BS2 0SB', '']
   ]);
 
   var q = ss.getSheetByName(TAB.QUOTES);
@@ -417,13 +436,14 @@ function saveRates(payload) {
 }
 
 function saveClient(c) {
+  migrateClientsHeader_();
   var sh = sh_(TAB.CLIENTS);
   var names = sh.getLastRow() > 1
     ? sh.getRange(2, 1, sh.getLastRow() - 1, 1).getValues().map(function (r) { return String(r[0]).trim(); })
     : [];
   var idx = names.indexOf(String(c.name).trim());
-  var row = [c.name || '', c.contact || '', c.country || '', c.email || '', c.address || ''];
-  sh.getRange(idx >= 0 ? idx + 2 : sh.getLastRow() + 1, 1, 1, 5).setValues([row]);
+  var row = [c.name || '', c.contact || '', c.country || '', c.email || '', c.address || '', c.phone || ''];
+  sh.getRange(idx >= 0 ? idx + 2 : sh.getLastRow() + 1, 1, 1, row.length).setValues([row]);
   return tableRead_(TAB.CLIENTS);
 }
 

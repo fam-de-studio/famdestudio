@@ -368,6 +368,7 @@ button{font-family:inherit;}
     <button class="btn" id="b-open">Open</button>
     <button class="btn" id="b-rates">Rates</button>
     <button class="btn" id="b-settings">My company</button>
+    <button class="btn" id="b-wa" title="Opens WhatsApp with the summary — attach the PDF">WhatsApp</button>
     <button class="btn" id="b-mail">Email</button>
     <button class="btn" id="b-save">Save</button>
     <button class="btn" id="b-print" title="Black &amp; white, for paper">Print B&amp;W</button>
@@ -406,7 +407,7 @@ var DEFAULT_RATES = {
   x_window:6, x_ribbon:8, x_magnet:25, x_edge:10, x_braille:4,
   waste:0.07, setup_sheets:200,
   fx:285, margin:0.4, fr_dhl:9, fr_air:5.5, fr_sea:180, docs:120,
-  ins_pct:0.005, ddp_fee:25, bank_pct:0.02
+  ins_pct:0.005, ddp_fee:25, bank_pct:0.02, sample_usd:150
 };
 var RATE_META = [
   ['plate','Plate cost, per plate','PKR each'],
@@ -448,7 +449,8 @@ var RATE_META = [
   ['docs','Export docs, clearance & handling','USD per shipment'],
   ['ins_pct','Transit insurance','fraction of goods + freight, e.g. 0.005 = 0.5%'],
   ['ddp_fee','Courier duties-paid (DTP) admin fee','USD per shipment, DDP only'],
-  ['bank_pct','Bank / payment charges','fraction of invoice value']
+  ['bank_pct','Bank / payment charges','fraction of invoice value'],
+  ['sample_usd','Pre-production sample, one finished piece by courier','USD per sample, credited against the order — 0 hides the line']
 ];
 var DEFAULT_BOARDS = [
   {name:'Art Card (C1S)', pkr_per_kg:420, note:'General cartons, cosmetics, food sleeves'},
@@ -469,11 +471,11 @@ var DEFAULT_FILMS = [
   {name:'Anti-Scuff Matte', pkr_per_sqin:0.022, note:'Matte that resists finger marks'}
 ];
 var DEFAULT_SETTINGS = {
-  company:'Meridian Print & Pack', tagline:'Decorative Print Specialists · Lahore',
-  address:'12-C Gulberg III, Lahore 54660, Pakistan',
-  email:'hello@meridianprintpack.com', phone:'+92 300 0000000', whatsapp:'+92 300 0000000',
-  ntn:'0000000-0', rep_name:'Mehboob Ahmed', rep_role:'Director — Production',
-  bank_benef:'Meridian Print & Pack', bank_name:'', bank_branch:'', bank_iban:'', bank_swift:'',
+  company:'FAM De Studio', tagline:'Luxury Packaging Design & Production · Lahore',
+  address:'Lahore, Pakistan',
+  email:'famdestudio@gmail.com', phone:'+92 324 1691194', whatsapp:'+92 324 1691194',
+  ntn:'', rep_name:'Mehboob Ahmed', rep_role:'Founder — Design & Production',
+  bank_benef:'FAM De Studio', bank_name:'', bank_branch:'', bank_iban:'', bank_swift:'',
   bank_payoneer:'USD / GBP / EUR receiving account — on request',
   quote_prefix:'QT-2026-', quote_next:1, pi_prefix:'PI-2026-', pi_next:1
 };
@@ -486,7 +488,7 @@ var EXTRA_FINISHES = ['Window patch','Ribbon pull','Magnetic closure','Edge pain
 function blankJob(){
   return {
     quote_no:'', date:todayISO(), status:'Draft', pi_no:'', po_ref:'',
-    client_name:'', client_contact:'', client_country:'', client_email:'', client_address:'',
+    client_name:'', client_contact:'', client_country:'', client_email:'', client_address:'', client_phone:'',
     product:'', style:'Straight Tuck End (STE)', qty:5000, repeat:'No',
     len:45, wid:45, hgt:120, flap:15, tuck:18, pieces:1, flat_w:195, flat_h:246,
     board:'SBS / Ivory Board', gsm:350, psw:635, psh:965, trim_w:10, trim_h:25, grain:'Long', flute:'None',
@@ -742,6 +744,7 @@ var PANEL = [
     {k:'client_contact', l:'Contact person', type:'text'},
     {k:'client_country', l:'City, country', type:'text'},
     {k:'client_email', l:'Email', type:'text'},
+    {k:'client_phone', l:'WhatsApp number, with country code', type:'text', ph:'+44 7700 900123'},
     {k:'client_address', l:'Delivery address', type:'text'},
     {btn:'Save this client to the directory', act:'saveClient'}
   ]},
@@ -878,9 +881,8 @@ function renderPanel(){
   h += '</datalist>';
 
   if(isPlaceholderCompany()){
-    h += '<div class="callout"><p>The documents still show the sample company '
-      + '<b>' + esc(DEFAULT_SETTINGS.company) + '</b>. Put your own name, address and bank '
-      + 'details in once — they are remembered.</p>'
+    h += '<div class="callout"><p>The proforma invoice has no bank details yet. Put your '
+      + 'IBAN, SWIFT and NTN in once — they are remembered.</p>'
       + '<button class="btn" data-act="openSettings">Set up my company</button></div>';
   }
 
@@ -1077,6 +1079,7 @@ function renderQuote(m){
     + spec('Lamination', job.lam)
     + spec('Cutting & forming', forming())
     + spec('Packing', packingWords())
+    + spec('Production', 'Lahore, Pakistan — our vetted print and finishing partners, supervised and inspected by ' + S('company'), 'w2')
     + (job.repeat === 'Yes' ? spec('Order type', 'Repeat order — tooling retained from your previous run') : '')
     + spec('Artwork', 'Print-ready PDF supplied by client · dieline supplied by us, free of charge', 'w3')
     + '</dl>';
@@ -1106,15 +1109,20 @@ function renderQuote(m){
     + term('Lead time', esc(job.lead_time) + ' working days from written artwork approval and receipt of advance.')
     + term('Freight', esc(job.mode) + ' — transit ' + esc(job.transit) + ' days.')
     + term('Payment', '50% with the purchase order, 50% against dispatch photographs before the shipment is handed over.')
-    + term('Approval', 'Digital proof issued for written approval before plates are made. Screen proofs are for layout, not colour; a wet proof or press-approved sample on request. Colour held within normal commercial tolerance of the approved reference.')
+    + term('Approval', 'Digital proof and 3D visual issued for written approval before plates are made. Screen proofs are for layout, not colour. Colour held within normal commercial tolerance of the approved reference.')
+    + (rate('sample_usd') > 0
+        ? term('Sample', 'Pre-production sample on your approved artwork, one finished piece delivered by courier: ' + usd(rate('sample_usd'), 0) + ', credited in full against the order.')
+        : '')
+    + term('Production', 'Printed and finished in Lahore by our specialist partners, every stage supervised by us. Inspection photographs of the finished job are sent before dispatch.')
     + term('Tolerance', 'Delivered quantity may vary ±5%; invoicing is adjusted to the quantity actually delivered.')
     + term('Artwork format', 'Print-ready PDF, CMYK, 3 mm bleed, fonts outlined. Foil and spot UV as separate 100% black layers.')
     + term('Validity', 'Prices hold for ' + esc(job.validity) + ' and assume the USD rate current at the date of issue.')
     + '</dl>';
 
-  h += '<div class="close"><p>We produce decorative print — foil, drip-off, metalized and soft-touch — '
-    + 'for small premium brands. Send us your logo file and we will return a 3D visual on the exact '
-    + 'dieline above, at no cost and with no obligation.</p>'
+  h += '<div class="close"><p>We design luxury packaging and manage its production in Lahore — hot foil, '
+    + 'embossing, spot UV, soft-touch and rigid box making — for small premium brands who want one '
+    + 'accountable studio from artwork to delivery. Send us your logo file and we will return a 3D visual '
+    + 'on the exact dieline above, at no cost and with no obligation.</p>'
     + '<div class="sign"><div class="l"></div><span>Authorised signature</span></div></div>';
 
   return h;
@@ -1296,7 +1304,8 @@ function fillClient(name){
       job.client_country = c.country || '';
       job.client_email = c.email || '';
       job.client_address = c.address || '';
-      ['client_contact','client_country','client_email','client_address'].forEach(function(k){
+      job.client_phone = c.phone || '';
+      ['client_contact','client_country','client_email','client_address','client_phone'].forEach(function(k){
         var el = document.getElementById('i_' + k);
         if(el) el.value = job[k];
       });
@@ -1307,7 +1316,8 @@ function fillClient(name){
 
 function isPlaceholderCompany(){
   var c = String(DB.settings.company || '').trim();
-  return c === '' || c === DEFAULT_SETTINGS.company;
+  var iban = String(DB.settings.bank_iban || '').trim();
+  return c === '' || iban === '';
 }
 
 var ACTIONS = {
@@ -1324,7 +1334,7 @@ var ACTIONS = {
   saveClient: function(){
     if(!job.client_name){ toast('Add a client name first'); return; }
     var c = {name:job.client_name, contact:job.client_contact, country:job.client_country,
-             email:job.client_email, address:job.client_address};
+             email:job.client_email, address:job.client_address, phone:job.client_phone};
     call('saveClient', c, function(list){
       DB.clients = list || DB.clients;
       var i, found = false;
@@ -1668,14 +1678,38 @@ document.getElementById('b-mail').addEventListener('click', function(){
     'tooling is already made.\n\n' +
     '2. At ' + int(job.qty2) + ' pcs the unit price falls to ' + unitStr(m.unit2) +
     '. Setup costs the same either way, so the second thousand is always cheaper than the first.\n\n' +
-    'Terms are 50% with the order, 50% before it ships. I will send a digital proof for written ' +
-    'approval before anything goes on press, and photos of the finished job before dispatch.\n\n' +
+    'Terms are 50% with the order, 50% before it ships. I will send a digital proof and a 3D visual for ' +
+    'written approval before anything goes on press, and photos of the finished job before dispatch.\n\n' +
+    (rate('sample_usd') > 0
+      ? 'If you would like to hold one in your hand first: a pre-production sample on your artwork is ' +
+        usd(rate('sample_usd'), 0) + ' delivered, credited in full against the order.\n\n' : '') +
     'Happy to adjust the specification if you want to hit a particular price.\n\n' +
     (DB.settings.rep_name || '') + '\n' + (DB.settings.company || '');
   var url = 'https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(job.client_email)
     + '&su=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
   window.open(url, '_blank');
   toast('Gmail opened — attach the PDF');
+});
+
+/* WhatsApp — the summary as a message, the PDF attached by hand. With no number
+   saved, WhatsApp opens on the chat picker so you choose the contact. */
+document.getElementById('b-wa').addEventListener('click', function(){
+  var m = calc();
+  var first = (job.client_contact || job.client_name || '').split(/[ ,]/)[0];
+  var text =
+    'Hi ' + (first || 'there') + ', quotation' + (job.quote_no ? ' ' + job.quote_no : '') + ' for ' + (job.product || 'your packaging') + ':\n\n' +
+    '\u2022 ' + int(job.qty) + ' pcs at ' + unitStr(m.ddpPc) + ' per box, ' +
+      (job.incoterm === 'DDP' ? 'delivered duty and VAT paid' : 'delivered to your door, duty unpaid') + '\n' +
+    '\u2022 Total ' + usd(m.ddp, 0) + '\n' +
+    '\u2022 ' + int(job.qty2) + ' pcs: ' + unitStr(m.unit2) + ' per box\n' +
+    '\u2022 Lead time ' + job.lead_time + ' working days after artwork approval, transit ' + job.transit + ' days\n\n' +
+    'Terms 50% with the order, 50% before dispatch. Digital proof and 3D visual for approval before press' +
+    (rate('sample_usd') > 0 ? '; a pre-production sample is ' + usd(rate('sample_usd'), 0) + ', credited against the order' : '') +
+    '.\n\nFull quotation PDF attached.\n' + (DB.settings.rep_name || '') + ', ' + (DB.settings.company || DEFAULT_SETTINGS.company);
+  var digits = String(job.client_phone || '').replace(/\D/g, '');
+  var url = (digits ? 'https://wa.me/' + digits + '?text=' : 'https://wa.me/?text=') + encodeURIComponent(text);
+  window.open(url, '_blank');
+  toast(digits ? 'WhatsApp opened — attach the PDF' : 'No number saved — pick the chat, then attach the PDF');
 });
 
 /* ====================== TOAST ====================== */
@@ -1714,6 +1748,7 @@ function fillClientSilent(c){
   job.client_country = c.country || '';
   job.client_email = c.email || '';
   job.client_address = c.address || '';
+  job.client_phone = c.phone || '';
 }
 
 if(LIVE){
