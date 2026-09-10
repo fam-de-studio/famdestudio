@@ -1,24 +1,40 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { site } from "@/content/site";
 import { finishingOptions, projectTypes, quantities } from "@/content/studio";
+import { formatInquiry, inquirySubject, whatsappUrl, type Inquiry } from "@/lib/inquiry";
 
-type Status = "idle" | "sending" | "sent" | "error";
+type Status = "idle" | "sent";
+/** State of the background email copy, shown as one line on the sent screen. */
+type Copy = "sending" | "sent" | "unavailable" | "failed";
 
 const emailOk = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
+/**
+ * Quote request form. Primary channel is WhatsApp: on submit the visitor's
+ * WhatsApp opens with the request prefilled (they only press Send), so the
+ * studio gets the inquiry and the client's number in one go. An email copy
+ * is posted to the endpoint in the background; mailto stays as a fallback.
+ */
 export function InquiryForm() {
   const [status, setStatus] = useState<Status>("idle");
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [sentVia, setSentVia] = useState<"endpoint" | "mailto">("mailto");
+  const [copy, setCopy] = useState<Copy>("sending");
+  const [waHref, setWaHref] = useState("");
+  const [mailHref, setMailHref] = useState("");
+  const startedAt = useRef(0);
 
-  async function onSubmit(e: FormEvent<HTMLFormElement>) {
+  // Bots submit instantly; the endpoint rejects anything under a few seconds.
+  useEffect(() => {
+    startedAt.current = Date.now();
+  }, [status]);
+
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     const fd = new FormData(form);
     const data = Object.fromEntries(fd.entries()) as Record<string, string>;
-    const finishing = fd.getAll("finishing").map(String);
 
     if (data.website) return; // honeypot
 
@@ -34,52 +50,41 @@ export function InquiryForm() {
       return;
     }
 
-    const payload: Record<string, string> = { ...data, finishing: finishing.join(", ") };
-    delete payload.website;
+    const inquiry: Inquiry = {
+      name: data.name.trim(),
+      company: (data.company ?? "").trim(),
+      country: (data.country ?? "").trim(),
+      email: data.email.trim(),
+      projectType: data.projectType,
+      quantity: data.quantity ?? "",
+      finishing: fd.getAll("finishing").map(String).join(", "),
+      details: data.details.trim(),
+    };
 
-    if (site.formEndpoint) {
-      setStatus("sending");
-      let notConfigured = false;
-      try {
-        const res = await fetch(site.formEndpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Accept: "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (res.status === 503) {
-          notConfigured = true; // endpoint exists but no mail service configured yet
-        } else if (!res.ok) {
-          throw new Error(String(res.status));
-        } else {
-          setSentVia("endpoint");
-          setStatus("sent");
-          form.reset();
-          return;
-        }
-      } catch {
-        setStatus("error");
-        return;
-      }
-      if (!notConfigured) return;
-    }
+    const wa = site.whatsapp ? whatsappUrl(site.whatsapp, inquiry) : "";
+    const mail = `mailto:${site.email}?subject=${encodeURIComponent(inquirySubject(inquiry))}&body=${encodeURIComponent(formatInquiry(inquiry))}`;
+    setWaHref(wa);
+    setMailHref(mail);
 
-    // Hand off to the visitor's mail client.
-    const lines = [
-      `Name: ${payload.name}`,
-      `Company / Brand: ${payload.company || "-"}`,
-      `Country: ${payload.country || "-"}`,
-      `Email: ${payload.email}`,
-      `Project type: ${payload.projectType}`,
-      `Estimated quantity: ${payload.quantity || "-"}`,
-      `Finishing: ${payload.finishing || "-"}`,
-      "",
-      payload.details,
-    ];
-    const subject = encodeURIComponent(`Quote request — ${payload.projectType} (${payload.quantity || "qty tbc"})`);
-    const body = encodeURIComponent(lines.join("\n"));
-    window.location.href = `mailto:${site.email}?subject=${subject}&body=${body}`;
-    setSentVia("mailto");
+    // Must run synchronously inside the submit handler or popup blockers stop it.
+    if (wa) window.open(wa, "_blank", "noopener,noreferrer");
+    else window.location.href = mail;
+
     setStatus("sent");
+    setCopy("sending");
+    form.reset();
+
+    if (!site.formEndpoint) {
+      setCopy("unavailable");
+      return;
+    }
+    fetch(site.formEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ ...inquiry, startedAt: startedAt.current }),
+    })
+      .then((res) => setCopy(res.ok ? "sent" : res.status === 503 ? "unavailable" : "failed"))
+      .catch(() => setCopy("failed"));
   }
 
   if (status === "sent") {
@@ -87,14 +92,25 @@ export function InquiryForm() {
       <div className="border-t border-line-d pt-10" role="status" aria-live="polite">
         <p className="t-h2">Thank you.</p>
         <p className="t-body mt-4 max-w-md text-muted">
-          {sentVia === "endpoint"
-            ? "Your request has been received. Expect a reply within two working days."
-            : "Your mail app should now be open with the request ready to send. If it isn't, email us directly at"}{" "}
-          {sentVia === "mailto" && (
-            <a href={`mailto:${site.email}`} className="link-line text-text-d">
-              {site.email}
+          {waHref
+            ? "WhatsApp should now be open with your request ready. Press Send there and we'll reply on WhatsApp. If it didn't open, use the button below."
+            : "Your mail app should now be open with the request ready to send."}
+        </p>
+        <div className="mt-8 flex flex-wrap items-center gap-6">
+          {waHref && (
+            <a href={waHref} target="_blank" rel="noopener noreferrer" className="t-nav btn-yellow font-bold px-8 py-5">
+              Open WhatsApp
             </a>
           )}
+          <a href={mailHref} className="link-line t-nav text-text-d">
+            Prefer email? {site.email}
+          </a>
+        </div>
+        <p className="t-small mt-6 text-muted">
+          {copy === "sending" && "Sending a copy by email…"}
+          {copy === "sent" && "A copy has also been emailed to the studio."}
+          {copy === "unavailable" && "Email copy not available yet; WhatsApp is the fastest route."}
+          {copy === "failed" && "The email copy didn't go through; WhatsApp still works."}
         </p>
         <button type="button" className="link-line t-nav mt-8" onClick={() => setStatus("idle")}>
           Send another request
@@ -160,21 +176,11 @@ export function InquiryForm() {
       </div>
 
       <div className="flex flex-wrap items-center gap-8">
-        <button
-          type="submit"
-          disabled={status === "sending"}
-          className="t-nav btn-yellow font-bold px-8 py-5 disabled:opacity-60"
-        >
-          {status === "sending" ? "Sending…" : "Request a quote"}
+        <button type="submit" className="t-nav btn-yellow font-bold px-8 py-5">
+          Request a quote
         </button>
-        {status === "error" && (
-          <p role="alert" className="t-small text-[#9a3b2e]">
-            The request couldn&rsquo;t be sent. Email us directly at{" "}
-            <a href={`mailto:${site.email}`} className="underline">
-              {site.email}
-            </a>
-            .
-          </p>
+        {site.whatsapp && (
+          <p className="t-small max-w-xs text-muted">Opens WhatsApp with your request prefilled. You just press Send.</p>
         )}
       </div>
     </form>
