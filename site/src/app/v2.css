@@ -214,7 +214,7 @@ html[data-loading="true"] {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 1px solid rgba(245, 197, 24, 0.35);
+  border: 1px solid color-mix(in srgb, var(--color-yellow) 35%, transparent);
   display: grid;
   place-items: center;
 }
@@ -401,7 +401,7 @@ html[data-loading="true"] {
   inset: 0;
   z-index: 2;
   pointer-events: none;
-  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(245, 197, 24, 0.14), transparent 60%);
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, var(--color-yellow) 14%, transparent), transparent 60%);
   opacity: 0;
   transition: opacity 0.4s ease;
 }

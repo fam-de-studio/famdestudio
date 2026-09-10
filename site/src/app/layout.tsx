@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Instrument_Serif, Manrope } from "next/font/google";
 import { site } from "@/content/site";
+import { accentScript } from "@/lib/accent";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { Cursor } from "@/components/site/Cursor";
@@ -63,7 +64,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${instrument.variable} ${manrope.variable}`}>
+    <html lang="en" className={`${instrument.variable} ${manrope.variable}`} suppressHydrationWarning>
+      <head>
+        {/* Sets the day's accent before first paint; see src/lib/accent.ts */}
+        <script dangerouslySetInnerHTML={{ __html: accentScript }} />
+      </head>
       <body className="min-h-dvh bg-ink text-text">
         <a
           href="#main"

@@ -518,7 +518,7 @@ body.has-cursor #cursor-ring {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 1px solid rgba(245, 197, 24, 0.35);
+  border: 1px solid color-mix(in srgb, var(--color-yellow) 35%, transparent);
   pointer-events: none;
   transform: translate(-50%, -50%);
   will-change: transform;
@@ -535,7 +535,7 @@ body.cursor-hot #cursor {
 body.cursor-hot #cursor-ring {
   width: 56px;
   height: 56px;
-  border-color: rgba(245, 197, 24, 0.6);
+  border-color: color-mix(in srgb, var(--color-yellow) 60%, transparent);
 }
 body.cursor-out #cursor,
 body.cursor-out #cursor-ring {
