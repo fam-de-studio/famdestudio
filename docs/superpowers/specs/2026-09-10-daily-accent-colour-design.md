@@ -37,6 +37,20 @@ Every existing consumer (`bg-yellow`, `text-yellow`, `bg-yellow/60`, `.btn-yello
 
 The four hard-coded `rgba(245, 197, 24, α)` values in `globals.css` and `v2.css` become `color-mix(in srgb, var(--color-yellow) α%, transparent)` so borders and the hover glow follow the day's colour too.
 
+## Derived shades (added 2026-09-15)
+
+The champagne/gold family no longer has fixed hex values. Every shade derives from `--color-yellow` with `color-mix(in srgb, …)`:
+
+| Token | Derivation | Used for |
+|---|---|---|
+| `--color-champagne` | accent as is | eyebrows, dots, hover text, hairlines, selection, focus |
+| `--color-champagne-2` | 45% accent + black | the same on ivory surfaces (AA for every palette colour) |
+| `--color-gold-hi` | 35% accent + white | progress bar highlight |
+| `--color-gold-lo` | 55% accent + black | foil gradient ends, progress bar start |
+| `.foil` / `.foil-dark` | stops mixed between 22% white and 38% black | sheen text ("felt.", "finishing", …) |
+
+So the whole site, foil sheen included, follows the day's colour.
+
 ## Out of scope
 
-The OG image stays yellow. The gold/champagne hairline tokens are untouched.
+The OG image stays yellow.
