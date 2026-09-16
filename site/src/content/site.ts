@@ -22,6 +22,7 @@ export const site = {
   formEndpoint: process.env.NEXT_PUBLIC_FORM_ENDPOINT ?? "/api/inquire",
   nav: [
     { label: "Work", href: "/#work" },
+    { label: "Gallery", href: "/gallery" },
     { label: "Expertise", href: "/#expertise" },
     { label: "Finishing", href: "/#finishing" },
     { label: "About", href: "/#about" },

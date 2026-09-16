@@ -105,6 +105,237 @@
     "width": 1600,
     "height": 1200
   },
+  "gal-aeterna-rigid-insert": {
+    "hash": "191a0be4",
+    "widths": [
+      480,
+      768,
+      1080,
+      1204
+    ],
+    "width": 1204,
+    "height": 1600
+  },
+  "gal-aethel-tee-box": {
+    "hash": "73c1eb13",
+    "widths": [
+      480,
+      736
+    ],
+    "width": 736,
+    "height": 1104
+  },
+  "gal-aethelred-belt-box": {
+    "hash": "cd180b5a",
+    "widths": [
+      362
+    ],
+    "width": 362,
+    "height": 342
+  },
+  "gal-aethereal-harvest-kraft": {
+    "hash": "d4880f3d",
+    "widths": [
+      480,
+      679
+    ],
+    "width": 679,
+    "height": 744
+  },
+  "gal-alhara-scarf-box": {
+    "hash": "ca8324ae",
+    "widths": [
+      480,
+      736
+    ],
+    "width": 736,
+    "height": 795
+  },
+  "gal-atherton-wallet-set": {
+    "hash": "4b395ae0",
+    "widths": [
+      480,
+      736
+    ],
+    "width": 736,
+    "height": 736
+  },
+  "gal-aura-magnetic-box": {
+    "hash": "3e43df07",
+    "widths": [
+      480,
+      736
+    ],
+    "width": 736,
+    "height": 736
+  },
+  "gal-auralis-skincare-box": {
+    "hash": "09102746",
+    "widths": [
+      480,
+      736
+    ],
+    "width": 736,
+    "height": 979
+  },
+  "gal-auravie-botanical-set": {
+    "hash": "8350d0b3",
+    "widths": [
+      480,
+      735
+    ],
+    "width": 735,
+    "height": 732
+  },
+  "gal-aurelia-floral-lid-box": {
+    "hash": "3e261fc0",
+    "widths": [
+      480,
+      768,
+      1080,
+      1440,
+      1600
+    ],
+    "width": 1600,
+    "height": 1200
+  },
+  "gal-aurelia-perfume-box": {
+    "hash": "cccda137",
+    "widths": [
+      480,
+      736
+    ],
+    "width": 736,
+    "height": 920
+  },
+  "gal-aurelian-shirt-box": {
+    "hash": "03738b24",
+    "widths": [
+      480,
+      736
+    ],
+    "width": 736,
+    "height": 736
+  },
+  "gal-eco-parcel-mailer": {
+    "hash": "17d45ab0",
+    "widths": [
+      480,
+      736
+    ],
+    "width": 736,
+    "height": 980
+  },
+  "gal-elara-saffron-box": {
+    "hash": "958ebd2c",
+    "widths": [
+      480,
+      500
+    ],
+    "width": 500,
+    "height": 500
+  },
+  "gal-kraft-core-mailers": {
+    "hash": "1e13dd65",
+    "widths": [
+      480,
+      736
+    ],
+    "width": 736,
+    "height": 980
+  },
+  "gal-kraft-shipper-boxes": {
+    "hash": "f62fce23",
+    "widths": [
+      480,
+      736
+    ],
+    "width": 736,
+    "height": 736
+  },
+  "gal-loracle-ampoule-set": {
+    "hash": "8a20f762",
+    "widths": [
+      480,
+      736
+    ],
+    "width": 736,
+    "height": 1070
+  },
+  "gal-polo-shirt-box": {
+    "hash": "25d1e04e",
+    "widths": [
+      480,
+      736
+    ],
+    "width": 736,
+    "height": 946
+  },
+  "gal-solaia-skincare-set": {
+    "hash": "82869ea4",
+    "widths": [
+      480,
+      736
+    ],
+    "width": 736,
+    "height": 920
+  },
+  "gal-terra-harvest-mailer": {
+    "hash": "d4c49a6e",
+    "widths": [
+      480,
+      735
+    ],
+    "width": 735,
+    "height": 490
+  },
+  "gal-urban-breeze-carrier": {
+    "hash": "68fb229c",
+    "widths": [
+      480,
+      736
+    ],
+    "width": 736,
+    "height": 981
+  },
+  "gal-valiant-archer-carry-box": {
+    "hash": "f043fc70",
+    "widths": [
+      480,
+      564
+    ],
+    "width": 564,
+    "height": 514
+  },
+  "gal-velvet-rigid-box": {
+    "hash": "a251aa9a",
+    "widths": [
+      480,
+      768,
+      1080,
+      1204
+    ],
+    "width": 1204,
+    "height": 1600
+  },
+  "gal-verdant-leaf-spice-box": {
+    "hash": "b44bb0e4",
+    "widths": [
+      480,
+      640
+    ],
+    "width": 640,
+    "height": 640
+  },
+  "gal-veridian-mailer": {
+    "hash": "ef1ece3a",
+    "widths": [
+      480,
+      736
+    ],
+    "width": 736,
+    "height": 736
+  },
   "hero-01": {
     "hash": "cc037f4c",
     "widths": [

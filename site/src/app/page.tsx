@@ -4,6 +4,7 @@ import { Stats } from "@/components/home/Stats";
 import { Marquee } from "@/components/home/Marquee";
 import { Expertise } from "@/components/home/Expertise";
 import { SelectedWork } from "@/components/home/SelectedWork";
+import { Gallery } from "@/components/home/Gallery";
 import { Finishing } from "@/components/home/Finishing";
 import { Structure } from "@/components/home/Structure";
 import { SmallRuns } from "@/components/home/SmallRuns";
@@ -46,6 +47,7 @@ export default function HomePage() {
       <Stats />
       <Expertise />
       <SelectedWork />
+      <Gallery />
       <Finishing />
       <Structure />
       <SmallRuns />
