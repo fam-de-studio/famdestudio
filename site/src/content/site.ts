@@ -12,6 +12,12 @@ export const site = {
   email: "famdestudio@gmail.com",
   whatsapp: "+92 324 1691194" as string, // leave empty to hide
   location: "Lahore, Pakistan",
+  /**
+   * Image disclosure, shown in the footer and on the gallery page. The
+   * photographs on the site are digitally treated and AI-assisted.
+   */
+  imageNote:
+    "Images on this site are digitally treated and AI-assisted studies. They illustrate the structures, materials and finishes the studio specifies and produces, not photographs of delivered orders.",
   foundedYear: 1998,
   /**
    * Form endpoint. Defaults to the built-in /api/inquire route, which sends

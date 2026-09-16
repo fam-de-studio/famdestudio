@@ -4,6 +4,7 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Button } from "@/components/ui/Button";
 import { Words } from "@/components/ui/Words";
 import { GalleryGrid } from "@/components/gallery/GalleryGrid";
+import { site } from "@/content/site";
 
 export const metadata: Metadata = {
   title: "Gallery",
@@ -28,10 +29,13 @@ export default function GalleryPage() {
                 </span>
               </h1>
             </div>
-            <p className="t-lead text-muted lg:col-span-4 lg:col-start-9 lg:pt-4">
-              Rigid and magnetic boxes, gift sets and apparel boxes, and kraft mailers for e-commerce. Filter by
-              category, click any piece to see it large.
-            </p>
+            <div className="lg:col-span-4 lg:col-start-9 lg:pt-4">
+              <p className="t-lead text-muted">
+                Rigid and magnetic boxes, gift sets and apparel boxes, and kraft mailers for e-commerce. Filter by
+                category, click any piece to see it large.
+              </p>
+              <p className="t-small mt-6 text-muted/80">{site.imageNote}</p>
+            </div>
           </Reveal>
         </div>
       </section>

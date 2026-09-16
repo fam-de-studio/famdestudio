@@ -48,9 +48,12 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-16 flex flex-col gap-3 border-t border-line py-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="t-small text-muted">© {new Date().getFullYear()} {site.name} · Luxury Packaging Design &amp; Production</p>
-          <p className="t-eyebrow text-muted">Design · Structure · Print · Finishing</p>
+        <div className="mt-16 border-t border-line py-6">
+          <p className="t-small max-w-2xl text-muted/80">{site.imageNote}</p>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="t-small text-muted">© {new Date().getFullYear()} {site.name} · Luxury Packaging Design &amp; Production</p>
+            <p className="t-eyebrow text-muted">Design · Structure · Print · Finishing</p>
+          </div>
         </div>
       </div>
 
