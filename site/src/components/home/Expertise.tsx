@@ -3,6 +3,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Words } from "@/components/ui/Words";
 import { expertise, formats } from "@/content/studio";
+import { boxStyles } from "@/content/box-styles";
 import img from "@/images/folding-carton-collection-02.jpg";
 
 export function Expertise() {
@@ -70,6 +71,31 @@ export function Expertise() {
             />
           </Reveal>
         </div>
+
+        <Reveal className="mt-16 lg:mt-24">
+          <div className="flex flex-wrap items-baseline justify-between gap-4">
+            <p className="t-eyebrow text-champagne">Everyday structures</p>
+            <p className="t-small max-w-md text-muted">
+              Alongside rigid work, the studio draws and produces the standard folding structures a brand needs.
+            </p>
+          </div>
+          <ul className="mt-6 grid grid-cols-4 gap-3 md:grid-cols-8 md:gap-4" aria-label="Box styles">
+            {boxStyles.map((b) => (
+              <li key={b.id} className="group">
+                <div className="hover-zoom overflow-hidden bg-ink-2">
+                  <Image
+                    src={b.src}
+                    alt={b.alt}
+                    sizes="(min-width: 768px) 12vw, 24vw"
+                    placeholder="blur"
+                    className="aspect-square w-full object-cover"
+                  />
+                </div>
+                <p className="t-small mt-2 text-muted transition-colors duration-500 group-hover:text-champagne">{b.name}</p>
+              </li>
+            ))}
+          </ul>
+        </Reveal>
       </div>
     </section>
   );

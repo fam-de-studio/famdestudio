@@ -11,6 +11,86 @@
     "width": 1920,
     "height": 1080
   },
+  "box-gable": {
+    "hash": "e212386a",
+    "widths": [
+      480,
+      768,
+      912
+    ],
+    "width": 912,
+    "height": 877
+  },
+  "box-mailer": {
+    "hash": "642be0a2",
+    "widths": [
+      480,
+      768,
+      912
+    ],
+    "width": 912,
+    "height": 877
+  },
+  "box-paper-bag": {
+    "hash": "45170288",
+    "widths": [
+      480,
+      768,
+      912
+    ],
+    "width": 912,
+    "height": 877
+  },
+  "box-sandwich-wedge": {
+    "hash": "1c406541",
+    "widths": [
+      480,
+      768,
+      912
+    ],
+    "width": 912,
+    "height": 877
+  },
+  "box-tissue": {
+    "hash": "8df9230c",
+    "widths": [
+      480,
+      768,
+      912
+    ],
+    "width": 912,
+    "height": 877
+  },
+  "box-tray": {
+    "hash": "c8de0299",
+    "widths": [
+      480,
+      768,
+      912
+    ],
+    "width": 912,
+    "height": 877
+  },
+  "box-tuck-end": {
+    "hash": "945ecf10",
+    "widths": [
+      480,
+      768,
+      912
+    ],
+    "width": 912,
+    "height": 877
+  },
+  "box-window": {
+    "hash": "9905020e",
+    "widths": [
+      480,
+      768,
+      912
+    ],
+    "width": 912,
+    "height": 877
+  },
   "chocolate-packaging": {
     "hash": "1aea8c88",
     "widths": [
