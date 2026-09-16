@@ -51,7 +51,7 @@ export function Gallery() {
         </ul>
 
         <Reveal className="mt-14">
-          <Button href="/gallery" variant="link">
+          <Button href="/gallery" variant="solid" className="px-9 py-5 text-[0.8125rem] font-bold">
             See the full gallery
           </Button>
         </Reveal>

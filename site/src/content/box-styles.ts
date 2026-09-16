@@ -17,7 +17,7 @@ export const boxStyles: BoxStyle[] = [
   { id: "paper-bag", name: "Paper bag", src: paperBag, alt: "White paper carrier bag with rope handles" },
   { id: "tissue", name: "Tissue box", src: tissue, alt: "White tissue box with a sheet drawn from the oval opening" },
   { id: "gable", name: "Gable box", src: gable, alt: "White gable-top box with a carry handle" },
-  { id: "tuck-end", name: "Tuck-end carton", src: tuckEnd, alt: "White tuck-end carton with the top flap open" },
+  { id: "cigarette", name: "Cigarette box", src: tuckEnd, alt: "White flip-top cigarette-style box with the lid open" },
   { id: "sandwich-wedge", name: "Sandwich wedge", src: sandwichWedge, alt: "White triangular sandwich wedge with a clear window" },
-  { id: "tray", name: "Tray", src: tray, alt: "White open tray with folded corners" },
+  { id: "frame-vue-tray", name: "Frame Vue Tray", src: tray, alt: "White open frame-vue tray with folded corners" },
 ];
