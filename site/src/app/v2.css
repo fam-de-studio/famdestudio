@@ -295,101 +295,6 @@ html[data-loading="true"] {
   color: var(--color-yellow);
 }
 
-/* ---------- 3D folding carton ---------- */
-.fold-stage {
-  perspective: 1600px;
-  perspective-origin: 50% 45%;
-  min-height: inherit;
-}
-.fold-box {
-  position: relative;
-  width: var(--fw);
-  height: var(--fh);
-  transform-style: preserve-3d;
-  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
-  transition: transform 0.15s linear;
-}
-.fold-box .pn {
-  position: absolute;
-  transform-style: preserve-3d;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.35), rgba(0, 0, 0, 0.1)),
-    #e9e2d6;
-  border: 1px solid rgba(20, 20, 20, 0.35);
-  box-sizing: border-box;
-}
-.fold-box .pn.crease {
-  border-style: dashed;
-}
-.fold-box .pn .mark {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  text-align: center;
-  font-family: var(--font-serif);
-  letter-spacing: 0.14em;
-  color: rgba(20, 20, 20, 0.75);
-}
-.fold-box .pn .rule {
-  position: absolute;
-  left: 12%;
-  right: 12%;
-  height: 1px;
-  background: var(--color-yellow);
-}
-.fold-box .front {
-  left: 0;
-  top: 0;
-  width: var(--fw);
-  height: var(--fh);
-}
-.fold-box .side-l {
-  left: 0;
-  top: 0;
-  width: var(--fd);
-  height: var(--fh);
-  transform-origin: right center;
-  transform: translateX(calc(var(--fd) * -1)) rotateY(calc(var(--a, 0deg) * -1));
-}
-.fold-box .side-r {
-  left: var(--fw);
-  top: 0;
-  width: var(--fd);
-  height: var(--fh);
-  transform-origin: left center;
-  transform: rotateY(var(--a, 0deg));
-}
-.fold-box .back {
-  top: 0;
-  height: var(--fh);
-}
-.fold-box .flap-t {
-  left: 0;
-  top: 0;
-  width: var(--fw);
-  height: var(--fd);
-  transform-origin: center bottom;
-  transform: translateY(calc(var(--fd) * -1)) rotateX(var(--a, 0deg));
-}
-.fold-box .flap-b {
-  left: 0;
-  top: var(--fh);
-  width: var(--fw);
-  height: var(--fd);
-  transform-origin: center top;
-  transform: rotateX(calc(var(--a, 0deg) * -1));
-}
-.fold-box .tuck {
-  left: 0;
-  top: 0;
-  width: var(--fw);
-  height: calc(var(--fd) * 0.6);
-  border-radius: 0 0 40% 40% / 0 0 100% 100%;
-  transform-origin: center bottom;
-  transform: translateY(calc(var(--fd) * -1.6)) rotateX(var(--a, 0deg));
-}
-
 /* ---------- Pointer tilt on work cards ---------- */
 .tilt {
   transform-style: preserve-3d;
@@ -448,9 +353,6 @@ html[data-loading="true"] {
   }
   .hero-story .hs-ring i {
     animation: none;
-  }
-  .fold-box {
-    transition: none;
   }
   .preloader {
     transition: none;

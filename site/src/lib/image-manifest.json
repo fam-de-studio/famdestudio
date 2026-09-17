@@ -161,6 +161,276 @@
     "width": 1600,
     "height": 1200
   },
+  "fold-00": {
+    "hash": "31a0c795",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
+  "fold-01": {
+    "hash": "27bbdc6a",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
+  "fold-02": {
+    "hash": "1053caf1",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
+  "fold-03": {
+    "hash": "28d8868e",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
+  "fold-04": {
+    "hash": "bf066c9c",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
+  "fold-05": {
+    "hash": "866212b0",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
+  "fold-06": {
+    "hash": "d2b3fa08",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
+  "fold-07": {
+    "hash": "ff7543a5",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
+  "fold-08": {
+    "hash": "554d3b8f",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
+  "fold-09": {
+    "hash": "adfc3575",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
+  "fold-10": {
+    "hash": "3fa7d780",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
+  "fold-11": {
+    "hash": "a8857f93",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
+  "fold-12": {
+    "hash": "8372f0c3",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
+  "fold-13": {
+    "hash": "b2f4e827",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
+  "fold-14": {
+    "hash": "d75df3e4",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
+  "fold-15": {
+    "hash": "b23399f9",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
+  "fold-16": {
+    "hash": "d0fa4a37",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
+  "fold-17": {
+    "hash": "0e1f19a1",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
+  "fold-18": {
+    "hash": "17ce3a1f",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
+  "fold-19": {
+    "hash": "950147a2",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
+  "fold-20": {
+    "hash": "1d7e7399",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
+  "fold-21": {
+    "hash": "63f8aebf",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
+  "fold-22": {
+    "hash": "c871b210",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
+  "fold-23": {
+    "hash": "4049d369",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
+  "fold-24": {
+    "hash": "238b5cae",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
+  "fold-25": {
+    "hash": "328a337c",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
+  "fold-26": {
+    "hash": "328a337c",
+    "widths": [
+      480,
+      768,
+      1024
+    ],
+    "width": 1024,
+    "height": 768
+  },
   "folding-carton-collection-01": {
     "hash": "551b5d99",
     "widths": [

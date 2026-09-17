@@ -3,20 +3,22 @@
 import { useRef } from "react";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { structureSteps } from "@/content/studio";
-import { FoldingCarton, useScrollProgress } from "./FoldingCarton";
+import { FoldSequence } from "./FoldSequence";
+import { useScrollProgress } from "./useScrollProgress";
 import { TuckDieline } from "./TuckDieline";
 
 /**
  * From flat artwork to a real object: a pinned two-column section. The copy
- * and the five steps sit left; on the right a dieline folds itself into a
- * carton as the visitor scrolls. Ivory "paper" surface.
+ * and the five steps sit left; on the right the ArtiosCAD dieline hands over
+ * to a Blender render that folds and turns as the visitor scrolls. Ivory "paper" surface.
  */
 export function Structure() {
   const wrap = useRef<HTMLDivElement>(null);
   const p = useScrollProgress(wrap);
   const stepIdx = Math.min(structureSteps.length - 1, Math.floor(p * structureSteps.length));
-  // The real dieline holds the stage first, then hands over to the folding box.
-  const handover = Math.min(1, Math.max(0, (p - 0.06) / 0.09)); // 0.06 -> 0.15
+  // The ArtiosCAD dieline holds the stage first, then hands over to the render.
+  const handover = Math.min(1, Math.max(0, (p - 0.05) / 0.07)); // 0.05 -> 0.12
+  const seq = Math.min(1, Math.max(0, (p - 0.1) / 0.85)); // frames run 0.10 -> 0.95
 
   return (
     <section id="structure" className="surface-ivory scroll-mt-0" aria-labelledby="structure-title">
@@ -57,8 +59,8 @@ export function Structure() {
 
             <div className="lg:col-span-6">
               <div className="crop-marks relative border border-line-d p-6 text-text-d lg:p-10" style={{ minHeight: "min(70vh, 560px)" }}>
-                <div style={{ opacity: handover }}>
-                  <FoldingCarton progress={p} />
+                <div className="flex h-full min-h-[inherit] items-center" style={{ opacity: handover }}>
+                  <FoldSequence progress={seq} />
                 </div>
                 <div
                   className="pointer-events-none absolute inset-6 flex items-center justify-center lg:inset-10"
@@ -68,10 +70,10 @@ export function Structure() {
                   <TuckDieline className="h-full max-h-[min(58vh,460px)] w-auto max-w-full" />
                 </div>
                 <div className="absolute bottom-4 left-5 flex items-center gap-3">
-                  <span className="t-eyebrow text-muted">Reverse tuck-end carton</span>
+                  <span className="t-eyebrow text-muted">Tuck-end carton</span>
                   <span className="h-px w-8 bg-line-d-strong" />
                   <span className="t-eyebrow" style={{ color: "var(--color-champagne-2)" }}>
-                    {p < 0.15 ? "Dieline" : p < 0.7 ? "Folding" : "Finished box"}
+                    {p < 0.16 ? "Dieline" : p < 0.3 ? "Artwork" : p < 0.4 ? "Folding" : "Finished box"}
                   </span>
                 </div>
               </div>
