@@ -27,7 +27,7 @@ export function Gallery() {
           </p>
         </Reveal>
 
-        <ul className="mt-16 columns-2 gap-4 md:columns-3 md:gap-6 lg:mt-24" aria-label="Gallery preview">
+        <ul className="mt-16 columns-2 gap-4 md:columns-3 md:gap-5 lg:columns-4 lg:mt-24" aria-label="Gallery preview">
           {homeGallery.map((g, i) => (
             <li key={g.id} className="mb-4 break-inside-avoid md:mb-6">
               <Reveal index={i % 3}>
@@ -36,7 +36,7 @@ export function Gallery() {
                     <Image
                       src={g.src}
                       alt={g.alt}
-                      sizes="(min-width: 768px) 30vw, 48vw"
+                      sizes="(min-width: 1024px) 23vw, (min-width: 768px) 30vw, 48vw"
                       placeholder="blur"
                       className="h-auto w-full object-cover"
                     />

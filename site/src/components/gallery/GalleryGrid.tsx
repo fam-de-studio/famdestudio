@@ -99,7 +99,7 @@ export function GalleryGrid() {
 
       <ul
         key={filter}
-        className="mt-12 columns-2 gap-4 md:columns-3 md:gap-6 lg:mt-16"
+        className="mt-12 columns-2 gap-4 md:columns-3 md:gap-5 lg:columns-4 lg:mt-16"
         aria-label="Gallery"
       >
         {items.map((g, i) => (
@@ -119,7 +119,7 @@ export function GalleryGrid() {
                   <Image
                     src={g.src}
                     alt={g.alt}
-                    sizes="(min-width: 768px) 30vw, 48vw"
+                    sizes="(min-width: 1024px) 23vw, (min-width: 768px) 30vw, 48vw"
                     placeholder="blur"
                     className="h-auto w-full object-cover"
                   />
