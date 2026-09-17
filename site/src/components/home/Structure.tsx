@@ -73,7 +73,7 @@ export function Structure() {
                   <span className="t-eyebrow text-muted">Tuck-end carton</span>
                   <span className="h-px w-8 bg-line-d-strong" />
                   <span className="t-eyebrow" style={{ color: "var(--color-champagne-2)" }}>
-                    {p < 0.16 ? "Dieline" : p < 0.3 ? "Artwork" : p < 0.4 ? "Folding" : "Finished box"}
+                    {seq < 0.08 ? "Dieline" : seq < 0.28 ? "Artwork" : seq < 0.4 ? "Folding" : "Finished box"}
                   </span>
                 </div>
               </div>
