@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { structureSteps } from "@/content/studio";
 import { FoldingCarton, useScrollProgress } from "./FoldingCarton";
+import { TuckDieline } from "./TuckDieline";
 
 /**
  * From flat artwork to a real object: a pinned two-column section. The copy
@@ -14,6 +15,8 @@ export function Structure() {
   const wrap = useRef<HTMLDivElement>(null);
   const p = useScrollProgress(wrap);
   const stepIdx = Math.min(structureSteps.length - 1, Math.floor(p * structureSteps.length));
+  // The real dieline holds the stage first, then hands over to the folding box.
+  const handover = Math.min(1, Math.max(0, (p - 0.06) / 0.09)); // 0.06 -> 0.15
 
   return (
     <section id="structure" className="surface-ivory scroll-mt-0" aria-labelledby="structure-title">
@@ -54,9 +57,18 @@ export function Structure() {
 
             <div className="lg:col-span-6">
               <div className="crop-marks relative border border-line-d p-6 text-text-d lg:p-10" style={{ minHeight: "min(70vh, 560px)" }}>
-                <FoldingCarton progress={p} />
+                <div style={{ opacity: handover }}>
+                  <FoldingCarton progress={p} />
+                </div>
+                <div
+                  className="pointer-events-none absolute inset-6 flex items-center justify-center lg:inset-10"
+                  style={{ opacity: 1 - handover }}
+                  aria-hidden={handover >= 1}
+                >
+                  <TuckDieline className="h-full max-h-[min(58vh,460px)] w-auto max-w-full" />
+                </div>
                 <div className="absolute bottom-4 left-5 flex items-center gap-3">
-                  <span className="t-eyebrow text-muted">Straight tuck-end carton</span>
+                  <span className="t-eyebrow text-muted">Reverse tuck-end carton</span>
                   <span className="h-px w-8 bg-line-d-strong" />
                   <span className="t-eyebrow" style={{ color: "var(--color-champagne-2)" }}>
                     {p < 0.15 ? "Dieline" : p < 0.7 ? "Folding" : "Finished box"}
